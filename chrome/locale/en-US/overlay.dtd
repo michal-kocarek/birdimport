@@ -1,4 +1,7 @@
 <!--
+
+// TODO: mk 2011-06-04 20:19:57: This is not used!
+
 <!ENTITY birdimport.label "Your localized menuitem">
 <!ENTITY birdimportContext.label "Your Menuitem">
 <!ENTITY birdimportContext.accesskey "Y">

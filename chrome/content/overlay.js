@@ -1,4 +1,8 @@
 /*
+ 
+ // TODO: mk 2011-06-04 20:19:57: This is not used!
+ 
+ 
 var birdimport = {
   onLoad: function() {
     // initialization code

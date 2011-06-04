@@ -1,7 +1,33 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ *
+ * The contents of this file are subject to the Mozilla Public License
+ * Version 1.1 (the "License"); you may not use this file except in
+ * compliance with the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ * 
+ * Software distributed under the License is distributed on an "AS IS"
+ * basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+ * License for the specific language governing rights and limitations
+ * under the License.
+ * 
+ * The Original Code is Bird Import.
+ * 
+ * The Initial Developer of the Original Code is Michal Kočárek <michal.kocarek@brainbox.cz>.
+ * 
+ * Copyright (C) 2011, Michal Kočárek. All Rights Reserved.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 /**
- * Script for overlay for the Import dialog.
+ * Script is used in the overlay of the Mozilla Thunderbird Import dialog.
+ *
+ * File registers the The Bat! importer just when the dialog is shown,
+ * and that allows importing the The Bat! e-mails.
+ *
+ * We are not registering the importer permanently, because it is buggy.
  *
  * @author Michal Kočárek michal.kocarek@brainbox.cz
+ * @since 2011.06.04
  */
 
 const Cc = Components.classes;
@@ -40,6 +66,7 @@ while(en.hasMoreElements()) {
 
 (function() {
 	
+	/** @type Components.interfaces.nsICategoryManager */
 	var categoryManager = Cc["@mozilla.org/categorymanager;1"].getService().QueryInterface(Ci.nsICategoryManager);
 	
 	// Instantiate the importer to get information about what we import
