@@ -1,0 +1,10 @@
+<!--
+<!ENTITY birdimport.label "Your localized menuitem">
+<!ENTITY birdimportContext.label "Your Menuitem">
+<!ENTITY birdimportContext.accesskey "Y">
+<!ENTITY birdimportToolbarButton.label "Your Toolbar Button">
+<!ENTITY birdimportToolbarButton.tooltip "This is your toolbar button!">
+<!ENTITY birdimportSidebar.label "Your Sidebar">
+<!ENTITY birdimportToolbar.name  "example">
+<!ENTITY birdimportToolbar.label "This is an example toolbar. You can hide it under View &gt; toolbars &gt; &birdimportToolbar.name;">
+-->
