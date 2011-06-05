@@ -291,9 +291,10 @@ ImportTheBatMailImpl.prototype = {
 	ImportMailbox: function(source, destination, errorLog, successLog, fatalError) {
 		LOG('ImportMailbox [source:'+source.GetDisplayName()+'; destination: '+destination.path+' - '+destination.target+']');
 		
-		var parked_tag_name = 'PPP';//strBundle.GetStringFromName('import.thebat.tag.parked.name');
-		var parked_tag_color = '#ff00ff';//strBundle.GetStringFromName('import.thebat.tag.parked.color');
+		var parked_tag_name = strBundle.GetStringFromName('import.thebat.tag.parked.name');
+		var parked_tag_color = strBundle.GetStringFromName('import.thebat.tag.parked.color');
 		
+		// TODO: mk 2011-06-05 16:43:02: Fix these messages!
 		var success_msg = 'Proběhl import složky ['+source.GetDisplayName()+']';
 		var error_msg = '';
 		var is_fatal = false;
