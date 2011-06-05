@@ -888,6 +888,8 @@ ConvertTbbToMboxIterator.prototype = {
 			keywords, keywords_x
 		;
 		
+		var flush_data = this._onFlushData;
+		
 		for(var i in mi) {
 			
 			this._buffer = '';
@@ -908,15 +910,15 @@ ConvertTbbToMboxIterator.prototype = {
 			
 			// Compose status
 			status_x =
-				  flags & TBB_FLAG_READ ? MSG_FLAG_READ : 0
-				| flags & TBB_FLAG_ANSWERED ? MSG_FLAG_REPLIED : 0
-				| flags & TBB_FLAG_FLAGGED ? MSG_FLAG_MARKED : 0
-				| flags & TBB_FLAG_DELETED ? MSG_FLAG_EXPUNGED : 0
-				| flags & TBB_FLAG_FORWARDED ? MSG_FLAG_FORWARDED : 0;
+				  (flags & TBB_FLAG_READ ? MSG_FLAG_READ : 0)
+				| (flags & TBB_FLAG_ANSWERED ? MSG_FLAG_REPLIED : 0)
+				| (flags & TBB_FLAG_FLAGGED ? MSG_FLAG_MARKED : 0)
+				| (flags & TBB_FLAG_DELETED ? MSG_FLAG_EXPUNGED : 0)
+				| (flags & TBB_FLAG_FORWARDED ? MSG_FLAG_FORWARDED : 0);
 			
 			status2_x =
-				  flags & TBB_FLAG_READ ? 0 : MSG_FLAG_NEW
-				| flags & TBB_FLAG_HAS_ATTACHMENT ? MSG_FLAG_ATTACHMENT : 0;
+				  (flags & TBB_FLAG_READ ? 0 : MSG_FLAG_NEW)
+				| (flags & TBB_FLAG_HAS_ATTACHMENT ? MSG_FLAG_ATTACHMENT : 0);
 			
 			// Compose keywords (parked label)
 			keywords_x = '';
@@ -976,7 +978,7 @@ ConvertTbbToMboxIterator.prototype = {
 				: MBOX_SPLIT_DEFAULT
 			);
 			
-			this._onFlushData(headers_array.join(''));
+			flush_data(headers_array.join(''));
 			
 			// Parse body
 			
@@ -988,7 +990,7 @@ ConvertTbbToMboxIterator.prototype = {
 					line = ' '+line;
 				}
 				
-				this._onFlushData(line);
+				flush_data(line);
 			}
 			
 			//log('Message ['+i+'] end');
@@ -1087,7 +1089,7 @@ ConvertTbbToMboxIterator.prototype = {
 	
 };
 
-ConvertTbbToMboxIterator.READ_LINE_BUFFER = 1;
+ConvertTbbToMboxIterator.READ_LINE_BUFFER = 4096;
 
 ConvertTbbToMboxIterator.DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
