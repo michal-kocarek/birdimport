@@ -49,8 +49,6 @@ function LOG(msg) {
 	//consoleService.logStringMessage('IM: '+msg);
 }
 
-// TODO: mk 2011-05-22 18:30:35: Get rid of dbgmd in this file
-
 /**
  * Class ID of the The Bat! import module.
  */
@@ -70,79 +68,6 @@ const NS_IMPORT_MAIL_STR = 'mail';
 /** @type Components.interfaces.nsIStringBundleService */
 var strBundleSrv = Cc['@mozilla.org/intl/stringbundle;1'].getService(Ci.nsIStringBundleService);
 var strBundle = strBundleSrv.createBundle('chrome://birdimport/locale/birdimport.properties');
-
-// TODO: mk 2011-05-30 20:06:12: Remove dbgmd when not needed anymore
-function dbgmd() {
-	this._file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-}
-
-dbgmd.prototype = {
-	
-	// Properties for the XPCOM registration
-	classID: Components.ID('{f6801fa0-848a-11e0-9d78-0800200c9a66}'),
-	//classDescription: 'The import module for data from The Bat!',
-	//contractID: '@mozilla.org/import/import-thebat;1',
-	
-	// Interface we are implementing
-	// http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportMailboxDescriptor.idl
-	QueryInterface: XPCOMUtils.generateQI([Ci.nsIImportMailboxDescriptor]),
-	
-	_identifier: 0,
-	get identifier() {
-		LOG('DBGMD get identifier ['+this._identifier+']');
-		return this._identifier;
-	},
-	set identifier(value) {
-		LOG('DBGMD set identifier ['+value+']');
-		this._identifier = value;
-	},
-	
-	_depth: 0,
-	get depth() {
-		LOG('DBGMD get depth ['+this._depth+']');
-		return this._depth;
-	},
-	set depth(value) {
-		LOG('DBGMD set depth ['+value+']');
-		this._depth = value;
-	},
-	
-	_size: 0,
-	get size() {
-		LOG('DBGMD get size ['+this._size+']');
-		return this._size;
-	},
-	set size(value) {
-		LOG('DBGMD set size ['+value+']');
-		this._size = value;
-	},
-	
-	_displayName: '',
-	GetDisplayName: function() {
-		LOG('DBGMD GetDisplayName ['+this._displayName+']');
-		return this._displayName;
-	},
-	SetDisplayName: function(value) {
-		LOG('DBGMD SetDisplayName ['+value+']');
-		this._displayName = value;
-	},
-	
-	_import: false,
-	get import() {
-		LOG('DBGMD get import ['+this._import+']');
-		return this._import;
-	},
-	set import(value) {
-		LOG('DBGMD set import ['+value+']');
-		this._import = value;
-	},
-	
-	_file: null,
-	get file() {
-		LOG('DBGMD get import ['+this._file.path+']');
-		return this._file;
-	}
-};
 
 /**
  * Import module for the data from The Bat! application.
@@ -315,8 +240,6 @@ ImportTheBatMailImpl.prototype = {
 		
 		for(var i in mailboxes) {
 			var mailbox = mailboxes[i];
-			// TODO: mk 2011-05-30 19:48:57: This is a debug version:
-			//var mbd = Components.classesByID['{f6801fa0-848a-11e0-9d78-0800200c9a66}'].createInstance(Ci.nsIImportMailboxDescriptor); // dbgmd
 			var mbd = importService.CreateNewMailboxDescriptor();
 			
 			mbd.identifier = mailbox.identifier;
@@ -467,7 +390,7 @@ ImportTheBatMailImpl.prototype = {
 	}
 };
 
-var components = [TheBatImportModule, ImportTheBatMailImpl, dbgmd];
+var components = [TheBatImportModule, ImportTheBatMailImpl];
 
 // The actual hook into XPCOM
 if (typeof XPCOMUtils !== 'undefined' && !!XPCOMUtils.generateNSGetFactory) {
