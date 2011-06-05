@@ -25,7 +25,7 @@
  */
 
 // TODO: mk 2011-05-22 15:03:24: FIX THIS!
-netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
+//netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
 
 // Symbols exported to the outer scope.
 const EXPORTED_SYMBOLS = ['ImportKit_TheBat', 'ConvertTbbToMboxIterator'];
@@ -63,71 +63,151 @@ const TBB_GLOBAL_HEADER_START = 0x20067919;
  */
 const TBB_MAIL_HEADER_START = 0x21097019;
 
+/**
+ * Deleted message flag in TBB file.
+ *
+ * Twin for Components.interfaces.nsMsgMessageFlags.Expunged
+ */
 const TBB_FLAG_DELETED = 1 << 0;
 
+/**
+ * Read message flag in TBB file.
+ *
+ * Twin for Components.interfaces.nsMsgMessageFlags.Read
+ */
 const TBB_FLAG_READ = 1 << 1;
 
+/**
+ * Replied message flag in TBB file.
+ *
+ * Twin for Components.interfaces.nsMsgMessageFlags.Replied
+ */
 const TBB_FLAG_ANSWERED = 1 << 2;
 
-// Znamená zaparkováno -NEBO- bude odesláno (je-li složka Outbox)
+/**
+ * Parked message flag in TBB file.
+ *
+ * Note that the meaning is different in Outbox folder. There it does mean „to be sent“.
+ *
+ * Thunderbird does not have this kind of flag.
+ */
 const TBB_FLAG_PARKED = 1 << 3;
 
+/**
+ * Message has attachment flag in TBB file.
+ *
+ * Twin for Components.interfaces.nsMsgMessageFlags.Attachment
+ */
 const TBB_FLAG_HAS_ATTACHMENT = 1 << 4;
 
+/**
+ * The attachments are not included in message flag in TBB file.
+ *
+ * Thunderbird does not have this kind of flag.
+ */
 const TBB_FLAG_ATTACHMENT_NOT_INCLUDED = 1 << 5;
 
+/**
+ * Flagged message flag in TBB file.
+ *
+ * Twin for Components.interfaces.nsMsgMessageFlags.Flagged
+ */
 const TBB_FLAG_FLAGGED = 1 << 6;
 
+/**
+ * Forwarded message flag in TBB file.
+ *
+ * Twin for Components.interfaces.nsMsgMessageFlags.Forwarded
+ */
 const TBB_FLAG_FORWARDED = 1 << 7;
 
-// TODO: mk 2011-05-30 22:53:39: Priority info can be probably removed, because is contained in headers
-///**
-// * TBB flag for Lowest (1) priority in Big Endian.
-// *
-// * Value comes from manual observation of priority
-// * status for TBB messages in The Bat! 5.0.12.
-// */
-//const TBB_PRIORITY_LOWEST = 0xFFFFFFFE;
-//
-///**
-// * TBB flag for Low (2) priority in Big Endian.
-// *
-// * Value comes from manual observation of priority
-// * status for TBB messages in The Bat! 5.0.12.
-// */
-//const TBB_PRIORITY_LOW = 0xFFFFFFFF;
-//
-///**
-// * TBB flag for Normal (3) priority in Big Endian.
-// *
-// * Value comes from manual observation of priority
-// * status for TBB messages in The Bat! 5.0.12.
-// */
-//const TBB_PRIORITY_NORMAL = 0x00000000;
-//
-///**
-// * TBB priority flag for High (4) priority in Big Endian.
-// *
-// * Value comes from manual observation of priority
-// * status for TBB messages in The Bat! 5.0.12.
-// */
-//const TBB_PRIORITY_HIGH = 0x00000001;
-//
-///**
-// * TBB priority flag for Highest (5) priority in Big Endian.
-// *
-// * Value comes from manual observation of priority
-// * status for TBB messages in The Bat! 5.0.12.
-// */
-//const TBB_PRIORITY_HIGHEST = 0x00000002;
+/**
+ * MBOX splitter line prefix.
+ */
+const MBOX_SPLIT_PREFIX = 'From - ';
+
+/**
+ * MBOX default splitter line incl. newline character (when date was not found).
+ */
+const MBOX_SPLIT_DEFAULT = "From - Fri Dec 31 23:59:59 1999\r\n";
+
+/**
+ * MBOX newline character
+ */
+const MBOX_NL = "\r\n";
+
+/**
+ * X-Mozilla-Status header name (excl. space after double-colon).
+ *
+ * http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgLocalFolderHdrs.h
+ */
+const X_MOZILLA_STATUS_PREFIX = 'X-Mozilla-Status:';
+
+/**
+ * X-Mozilla-Status2 header name (excl. space after double-colon).
+ *
+ * http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgLocalFolderHdrs.h
+ */
+const X_MOZILLA_STATUS2_PREFIX = 'X-Mozilla-Status2:';
+
+/**
+ * X-Mozilla-Keys header name (excl. space after double-colon).
+ *
+ * http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgLocalFolderHdrs.h
+ */
+const X_MOZILLA_KEYWORDS_PREFIX = 'X-Mozilla-Keys:';
+
+/**
+ * Minimal size of blanks-filled value of  X-Mozilla-Keys header.
+ *
+ * http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgLocalFolderHdrs.h
+ */
+const X_MOZILLA_KEYWORDS_MIN_LENGTH = '                                                                                '; // 80 chars
+                                    /* 0---------10--------20--------30--------40--------50--------60--------70--------80 */
+
+// TODO: mk 2011-06-05 01:42:16: FIX THIS
+/**
+ * MBOX Status flag for read message.
+ */
+const MSG_FLAG_READ = Ci.nsMsgMessageFlags.Read;
+
+/**
+ * MBOX Status flag for replied message.
+ */
+const MSG_FLAG_REPLIED = Ci.nsMsgMessageFlags.Replied;
+
+/**
+ * MBOX Status flag for flagged message.
+ */
+const MSG_FLAG_MARKED = Ci.nsMsgMessageFlags.Flagged;
+
+/**
+ * MBOX Status flag for expunged message.
+ */
+const MSG_FLAG_EXPUNGED = Ci.nsMsgMessageFlags.Expunged;
+
+/**
+ * MBOX Status flag for forwarded message.
+ */
+const MSG_FLAG_FORWARDED = Ci.nsMsgMessageFlags.Forwarded;
+
+/**
+ * MBOX Status flag for new message.
+ */
+const MSG_FLAG_NEW = Ci.nsMsgMessageFlags.New;
+
+/**
+ * MBOX Status flag for message with attachment.
+ */
+const MSG_FLAG_ATTACHMENT = Ci.nsMsgMessageFlags.Attachment;
 
 function log(msg) {
 	// TODO: mk 2011-05-22 15:25:31: FIX THIS
-	console.log('IK: '+msg); return;
-	
-	/** @type Components.interfaces.nsIConsoleService */
-	var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
-	consoleService.logStringMessage('IK: '+msg);
+	//console.log('IK: '+msg); return;
+	//
+	///** @type Components.interfaces.nsIConsoleService */
+	//var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+	//consoleService.logStringMessage('IK: '+msg);
 }
 
 /**
@@ -186,13 +266,13 @@ ImportKit_TheBat = {
 	 * Returns new instance of the TBB mailbox parser.
 	 *
 	 * @param {String} Filepath to the .TBB file.
-	 * @returns {TbbParser} New instance of the parser.
+	 * @returns {TbbMessageIterator} New instance of the parser.
 	 */
 	createMailboxReader: function(filepath) {
 		// TODO: mk 2011-05-30 21:27:29: Tohle by se dalo klidně vyexternalizovat jako Symbol
 		var reader = new TbbMessageIterator(filepath);
 		return reader;
-	},
+	}
 	
 };
 
@@ -448,52 +528,131 @@ TbbMessageIterator.prototype = {
 	 */
 	_bstream: null,
 	
+	/**
+	 * @type Components.interfaces.nsIBufferedInputStream
+	 */
+	_bufstream: null,
+	
 	_filesize: 0,
 	
 	_curpos: 0,
 	
 	/**
+	 * Returns current position in the file.
+	 *
+	 * @returns {Number} File position.
+	 */
+	get currentPosition() {
+		return this._curpos;
+	},
+	
+	/**
+	 * @type Number
+	 */
+	_messageFlags: 0,
+	
+	/**
+	 * Total length of current message.
+	 */
+	_messageLength: 0,
+	
+	/**
+	 * Available length of message, which can be read.
+	 */
+	_messageLengthAvailable: 0,
+	
+	/**
+	 * Returns the TBB flags of current message.
+	 *
+	 * Flags can be bitmasked with TBB constants.
+	 *
+	 * @returns {Number} TBB flags.
+	 */
+	get messageFlags() {
+		return this._messageFlags;
+	},
+	
+	/**
 	 * Iterates over the TBB file and returns e-mail messages for
 	 * the work in Thunderbird.
 	 *
-	 * // TODO: mk 2011-05-24 17:37:27: Fix the description
+	 * During iteration, iterator returns the index of current message.
 	 */
 	__iterator__: function() {
 		this._openFile();
 		
-		log('TBB reading started [size:'+this._filesize+'; pos:'+this._curpos+']');
+		//log('TBB reading started [size:'+this._filesize+'; pos:'+this._curpos+']');
 		
-		this._readHeader();
+		this._readFileHeader();
 		
+		var i = 0;
 		while(this._bstream.available()) {
-			var message = this._readMessage();
-			yield message;
+			this._readMessageHeader();
+			yield i++; // Return the message index.
+			
+			// If the ugly developer didn’t read all the message, finish the reading before jumping to next message.
+			if (this._messageLengthAvailable)
+				this.messageReadBytes(this._messageLengthAvailable);
 		}
 		
-		log('TBB reading finished [size:'+this._filesize+'; pos:'+this._curpos+']');
+		if (this._filesize != this._curpos)
+			throw new Error('TBB was not read till the end [expected:'+this._filesize+'; read:'+this._curpos+']');
 		
 		this._closeFile();
 		
 		throw StopIteration;
 	},
 	
-	_readHeader: function() {
+	/**
+	 * Reads amount of bytes from the current message.
+	 *
+	 * When message is read completely, null is returned.
+	 *
+	 * @param {Number} max_length Maximum bytes to read.
+	 * @returns {String} Read bytes.
+	 */
+	messageReadBytes: function(max_length) {
+		var to_read = Math.min(this._messageLengthAvailable, max_length);
+		
+		if (to_read == 0)
+			return null;
+		
+		var data = this._bstream.readBytes(to_read);
+		var data_length = data.length;
+		
+		this._messageLengthAvailable -= data_length;
+		this._curpos += data_length;
+		
+		return data;
+	},
+	
+	/**
+	 * Reads the TBB file header. Sets file pointer to the beginning of the first message.
+	 * 
+	 * @private
+	 */
+	_readFileHeader: function() {
 		var bs = this._bstream;
 		
 		// Read first magic bytes - always same
 		var magic_bytes = bs.read32();
 		if (magic_bytes != TBB_GLOBAL_HEADER_START)
-			throw new Error('Unexpected global start byte sequence ['+magic_bytes+'], expected ['+TBB_GLOBAL_HEADER_START+']');
+			throw new Error('Unexpected global start byte sequence of TBB file ['+magic_bytes+'], expected ['+TBB_GLOBAL_HEADER_START+']!');
 		
 		var header_length = this._endianSwap16(bs.read16());
 		
 		// header_length is sum of magic_bytes (4), header_length (2) and unkown_data (var)
-		var unknown_data = bs.readBytes(header_length - 4 - 2, null);
+		/*var skipHeaderData = */bs.readBytes(header_length - 4 - 2, null);
 		
 		this._curpos += header_length;
 	},
 	
-	_readMessage: function() {
+	/**
+	 * Starts reading one message from the TBB file.
+	 *
+	 * @private
+	 */
+	_readMessageHeader: function() {
 		var bs = this._bstream;
 		
 		// 00…03 Magic number - always same
@@ -503,7 +662,6 @@ TbbMessageIterator.prototype = {
 		
 		// 04…07 Message header size (little endian)
 		var header_length = this._endianSwap32(bs.read32());
-		var header_to_read = header_length - 8; // already read magic_bytes (4) and header_length (4)
 		
 		// 08…11 unknown
 		// 12…15 Received time (unix timestamp, little endian)
@@ -513,45 +671,27 @@ TbbMessageIterator.prototype = {
 		// 24…27 unknown (?zeros?)
 		// 28…31 unknown (?zeros?) In older versions was color group of the message, but now this is stored elsewhere.
 		// 32…35 Priority status (little endian)
-		// 36…39 Variable part size (little endian)
+		// 36…39 Size of the variable part (size of the message) (little endian)
 		// 40…47 unknown (?zeros?)
 		
 		// I am interested only in message status flag and variable part size
 		
 		/* var skip08to19 = */ bs.readBytes(12, null);
-		header_to_read -= 12;
 		
-		var message_status_flag = this._endianSwap32(bs.read32());
-		header_to_read -= 4;
+		// Read the message flags (TBB_FLAG_* bitfield)
+		this._messageFlags = this._endianSwap32(bs.read32());
 		
-		/* var skip24to31 = */ bs.readBytes(8, null);
-		header_to_read -= 8;
-		
-		// TODO: mk 2011-05-30 22:53:39: Priority info can be probably removed, because is contained in headers
-		var priority_status = this._endianSwap32(bs.read32());
-		header_to_read -= 4;
+		/* var skip24to35 = */ bs.readBytes(12, null);
 		
 		var message_length = this._endianSwap32(bs.read32());
-		header_to_read -= 4;
 		
-		/* var skipRest = */ bs.readBytes(header_to_read, null);
-		header_to_read = 0;
-		//log('Reading '+message_length+' -> 0x'+message_length.toString(16)+' bytes');
-		var message = bs.readBytes(message_length);
+		// Skip rest of the header.
+		// We already read 40 bytes (00…39)
+		/* var skipRest = */ bs.readBytes(header_length - 40, null);
 		
-		log('Read message [status:'+message_status_flag.toString(16)+'; priority: '+priority_status+'; size:'+message_length+']'+"\r\n"+
-			message.substring(0, message.indexOf("\r\n\r\n")+50));
+		this._messageLength = this._messageLengthAvailable = message_length;
 		
-		log('Flags: '
-			+'read: '+((message_status_flag & TBB_FLAG_READ ? 'yes' : 'no'))+'; '
-			+'parked: '+((message_status_flag & TBB_FLAG_PARKED ? 'yes' : 'no'))+'; '
-			+'flagged: '+((message_status_flag & TBB_FLAG_FLAGGED ? 'yes' : 'no'))+'; '
-		+'');
-		
-		this._curpos += header_length + message_length;
-		
-		// TODO: mk 2011-05-24 17:41:45: Shouldn’t return foo! :-)
-		return 'foo';
+		this._curpos += header_length;
 	},
 	
 	/**
@@ -590,6 +730,9 @@ TbbMessageIterator.prototype = {
 			| ((x & 0x0000FF00) << 8) ) + parseInt(last_tuplet+'000000', 16);
 	},
 	
+	/**
+	 * @private
+	 */
 	_openFile: function() {
 		this._file = FileTools.openFile(this._filepath);
 		
@@ -602,16 +745,26 @@ TbbMessageIterator.prototype = {
 		this._istream = Cc['@mozilla.org/network/file-input-stream;1'].createInstance(Ci.nsIFileInputStream);
 		this._istream.init(this._file, 0x01 /* PR_RDONLY */, -1, false);
 		
+		this._bufstream = Cc['@mozilla.org/network/buffered-input-stream;1'].createInstance(Ci.nsIBufferedInputStream);
+		this._bufstream.init(this._istream, 4096);
+		
 		/** @type Components.interfaces.nsIBinaryInputStream */
 		this._bstream = Cc['@mozilla.org/binaryinputstream;1'].createInstance(Ci.nsIBinaryInputStream);
-		this._bstream.setInputStream(this._istream);
+		this._bstream.setInputStream(this._bufstream);
 	},
 	
+	/**
+	 * @private
+	 */
 	_closeFile: function() {
-		log('Closing file');
+		//log('Closing file');
 		if (this._bstream) {
 			this._bstream.close();
 			this._bstream = null;
+		}
+		if (this._bufstream) {
+			this._bufstream.close();
+			this._bufstream = null;
 		}
 		if (this._istream) {
 			this._istream.close();
@@ -629,12 +782,18 @@ TbbMessageIterator.prototype = {
  * the Thunderbird MBOX file.
  *
  * @param {TbbMessageIterator} message_iterator The iterator over messages in The Bat storage.
+ * @param {Function} flush_data_callback Function called when data are going to be flushed.
+ * @param {Function} after_message_callback Function called after every message.
+ * @param {Function} wants_parked_label_callback Optional: Callback returning the Parked label key.
  *
  * @constructor
  * @class ConvertTbbToMboxIterator
  */
-function ConvertTbbToMboxIterator(message_iterator) {
+function ConvertTbbToMboxIterator(message_iterator, flush_data_callback, after_message_callback, wants_parked_label_callback) {
 	this._messageIterator = message_iterator;
+	this._onFlushData = flush_data_callback;
+	this._onAfterMessage = after_message_callback || function() {};
+	this._onWantsParkedLabel = wants_parked_label_callback || function() { return false; };
 }
 
 ConvertTbbToMboxIterator.prototype = {
@@ -645,46 +804,301 @@ ConvertTbbToMboxIterator.prototype = {
 	_messageIterator: null,
 	
 	/**
+	 * @type Function
+	 * Callback returning key for the Parked label.
+	 *
+	 * Function is called *first time* when name for the Parked label is required.
+	 * When this function returns null, label is not being converted.
+	 *
+	 * string|null _onWantsParkedLabel()
+	 */
+	_onWantsParkedLabel: null,
+	
+	/**
+	 * @type Function
+	 * Callback for outputting the data.
+	 *
+	 * Function is called every time converter wants to output something.
+	 *
+	 * void _onFlushData(String output)
+	 */
+	_onFlushData: null,
+	
+	/**
+	 * @type Function
+	 * Callback for notifying about next message.
+	 *
+	 * Function is called every time *after* parsing new message (eg. _onFlushData preceeded this callback).
+	 *
+	 * void _onAfterMessage(Number index)
+	 */
+	_onAfterMessage: null,
+	
+	/**
+	 * @type String
+	 * Key for the Parked label.
+	 *
+	 * (String: The Parked label from the callback, Null: Was not requested yet, False: Do not store the label)
+	 */
+	_parkedLabelKey: null,
+	
+	/**
+	 * @type String
+	 * Buffer for reading lines.
+	 */
+	_buffer: '',
+	
+	/**
+	 * @type Number
+	 * Actual position in the buffer.
+	 */
+	_bufferPos: 0,
+	
+	/**
+	 * @type Boolean
+	 * True, when read whole message.
+	 */
+	_isEof: false,
+	
+	/**
+	 * @type Boolean
+	 * True, when buffer cannot be enlarged
+	 */
+	_isEofBuffer: false,
+	
+	/**
 	 * Loops over the inner iterator and converts the message to the
 	 * Thunderbird format.
-	 * 
-	 * @returns {String} Message ready to be appended to the MBOX file.
 	 */
-	__iterator__: function() {
+	convert: function() {
 		
 		// X-Mozilla-? header description:
 		// http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgLocalFolderHdrs.h and
 		// http://www.eyrich-net.org/mozilla/X-Mozilla-Status.html?en and
 		// http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgMessageFlags.idl
 		
-		for(var tbb_message in this._messageIterator) {
+		var mi = this._messageIterator,
+			line,
+			line_start_c,
+			from_date,
+			headers_array,
+			flags,
+			status, status_x,
+			status2, status2_x,
+			keywords, keywords_x
+		;
+		
+		for(var i in mi) {
 			
-			// Pozn: flag PARKED ve složce odchozí znamená: nebylo odesláno!
+			this._buffer = '';
+			this._bufferPos = 0;
+			this._isEof = this._isEofBuffer = false;
 			
+			//log('Message ['+i+'] start');
+			
+			// Parse headers
+			headers_array = [];
+			from_date = null;
+			
+			//log('Parsing headers');
+			
+			flags = mi.messageFlags;
+			
+			// TODO: mk 2011-06-05 01:42:23: FIX THIS
+			
+			// Compose status
+			status_x =
+				  flags & TBB_FLAG_READ ? MSG_FLAG_READ : 0
+				| flags & TBB_FLAG_ANSWERED ? MSG_FLAG_REPLIED : 0
+				| flags & TBB_FLAG_FLAGGED ? MSG_FLAG_MARKED : 0
+				| flags & TBB_FLAG_DELETED ? MSG_FLAG_EXPUNGED : 0
+				| flags & TBB_FLAG_FORWARDED ? MSG_FLAG_FORWARDED : 0;
+			
+			status2_x =
+				  flags & TBB_FLAG_READ ? 0 : MSG_FLAG_NEW
+				| flags & TBB_FLAG_HAS_ATTACHMENT ? MSG_FLAG_ATTACHMENT : 0;
+			
+			// Compose keywords (parked label)
+			keywords_x = '';
+			if (flags & TBB_FLAG_PARKED) {
+				if (this._parkedLabelKey === null) {
+					this._parkedLabelKey = this._onWantsParkedLabel();
+				}
+				if (this._parkedLabelKey) {
+					keywords_x = this._parkedLabelKey;
+				}
+			}
+			
+			// Add the X-Mozilla-Status & X-Mozilla-Status2 headers
+			status = ('0000'+(status_x).toString(16).toUpperCase()).substr(-4); // pad hexa number to 4 characters with zeros on left
+			status2 = ('00000000'+(status2_x).toString(16).toUpperCase()).substr(-8); // pad hexa number to 8 characters with zeros on left
+			keywords = (keywords_x+X_MOZILLA_KEYWORDS_PREFIX).substr(X_MOZILLA_KEYWORDS_PREFIX.length); // pad on right with spaces
+			
+			headers_array.push(X_MOZILLA_STATUS_PREFIX+' '+status+MBOX_NL);
+			headers_array.push(X_MOZILLA_STATUS2_PREFIX+' '+status2+MBOX_NL);
+			headers_array.push(X_MOZILLA_KEYWORDS_PREFIX+' '+keywords_x+MBOX_NL);
+			
+			line = this._readLine();
+			for (line = this._readLine(); !this._isEof && line.trim(); line = this._readLine()) {
+				line_start_c = line.charCodeAt(0);
+				
+				if (line_start_c === 68 /* D */ && line.indexOf('Date: ') === 0) {
+					// Found Date header
+					from_date = new Date(line.substr(6).trim());
+					if (from_date.getYear() === NaN)
+						from_date = null;
+				} else if(line_start_c === 88 /* X */ && line.indexOf('X-Mozilla-') === 0) {
+					// Strip existing Mozilla headers as they could cause problems
+					if (line.indexOf(X_MOZILLA_STATUS_PREFIX) === 0
+						|| line.indexOf(X_MOZILLA_STATUS2_PREFIX) === 0
+						|| line.indexOf(X_MOZILLA_KEYWORDS_PREFIX) === 0) {
+						continue;
+					}
+					// else leave the header, because we do not know how important it is
+				}
+				
+				headers_array.push(line);
+			}
+			headers_array.push(line); // add the last line
+			
+			// Add the From header to the beginning
+			headers_array.unshift(from_date !== null
+				? (// From - Mon May 30 22:34:26 2011
+					MBOX_SPLIT_PREFIX
+					+ConvertTbbToMboxIterator.DAY_MAP[ from_date.getDay() ]
+					+' '+ConvertTbbToMboxIterator.MONTH_MAP[ from_date.getMonth()-1 ]
+					+' '+(from_date.getDay() < 10 ? '0' : '')+from_date.getDay()
+					+' '+(from_date.getHours() < 10 ? '0' : '')+from_date.getHours()
+					+':'+(from_date.getMinutes() < 10 ? '0' : '')+from_date.getMinutes()
+					+':'+(from_date.getSeconds() < 10 ? '0' : '')+from_date.getSeconds()
+					+' '+from_date.getFullYear()
+					+MBOX_NL)
+				: MBOX_SPLIT_DEFAULT
+			);
+			
+			this._onFlushData(headers_array.join(''));
+			
+			// Parse body
+			
+			//log('Parsing body');
+			
+			while(false !== (line = this._readLine())) {
+				// Put a space before the line which starts with 'From '
+				if (line.charCodeAt(0) === 70 /* F */ && line.indexOf('From ') === 0) {
+					line = ' '+line;
+				}
+				
+				this._onFlushData(line);
+			}
+			
+			//log('Message ['+i+'] end');
+			
+			this._onAfterMessage(i);
 		}
 		
 	},
 	
-	_getKeywordsHeader: function() {
-		// Keywords described in http://kb.mozillazine.org/Tags
-		// Service http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIMsgTagService.idl
-		// Usage of service: addTagCallback() in http://mxr.mozilla.org/comm-central/source/mail/components/preferences/display.js
+	/**
+	 * Reads one line from current message.
+	 * 
+	 * @returns {String} One line or False when there’s nothing more to read.
+	 * @private
+	 */
+	_readLine: function() {
+		
+		// Sanity check - there’s nothing more to read in this message
+		if (this._isEof)
+			return false;
+		
+		var search_from_pos = this._bufferPos;
+		while(true) {
+			// Find \r or \n in the message
+			var nl_pos = this._buffer.indexOf("\r", search_from_pos);
+			if (nl_pos !== -1) {
+				// Try to find \n after \r
+				
+				if (nl_pos === this._buffer.length-1) {
+					// This is last char in the buffer... Enlarge buffer, so we can check for \n
+					this._enlargeBuffer();
+				}
+				
+				if (this._buffer.charCodeAt(nl_pos+1) === 10) {
+					++nl_pos; // We found \r\n
+				} // else: we found only \r
+			} else {
+				nl_pos = this._buffer.indexOf("\n", search_from_pos);
+			}
+			
+			if (nl_pos !== -1)
+				break; // We found newline
+			
+			// We didn’t found newline character.
+			if (this._isEofBuffer) {
+				// End of file. There’s nothing more to read except this last line
+				// So return it and mark buffer closed
+				//log('Nothing more');
+				this._isEof = true;
+				var line = this._buffer.substr(this._bufferPos);
+				return line;
+			}
+			
+			// We didn’t found nothing in the buffer and try again
+			search_from_pos = this._buffer.length;
+			this._enlargeBuffer();
+		}
+		
+		// We found newline
+		++nl_pos; // this is position *after* newline
+		var line = this._buffer.substring(this._bufferPos, nl_pos);
+		this._bufferPos = nl_pos;
+		
+		if (this._bufferPos > ConvertTbbToMboxIterator.READ_LINE_BUFFER) {
+			//log('Shortening buffer ['+this._buffer.substr(0, this._bufferPos)+'↓'+this._buffer.substr(this._bufferPos)+']');
+			this._buffer = this._buffer.substr(this._bufferPos);
+			this._bufferPos = 0;
+		}
+		
+		if (this._bufferPos === this._buffer.length) {
+			this._enlargeBuffer();
+			if (this._isEofBuffer)
+				this._isEof = true;
+		}
+		
+		return line;
+	},
+	
+	/**
+	 * Gets more data in the buffer.
+	 *
+	 * @private
+	 */
+	_enlargeBuffer: function() {
+		//log('Enlarging buffer');
+		
+		var data = this._messageIterator.messageReadBytes(ConvertTbbToMboxIterator.READ_LINE_BUFFER);
+		if (data !== null) {
+			this._buffer += data;
+			if (data.length != ConvertTbbToMboxIterator.READ_LINE_BUFFER)
+				this._isEofBuffer = true;
+		} else {
+			this._isEof = true;
+		}
 	}
 	
 };
 
-// TODO: mk 2011-05-30 22:53:39: Priority info can be probably removed, because is contained in headers
-///**
-// * Mapping from The Bat! priority status to the X-Priority values
-// */
-//ConvertTbbToMboxIterator.PRIORITY_MAP = {
-//	TBB_PRIORITY_LOWEST: 1,
-//	TBB_PRIORITY_LOW: 2,
-//	TBB_PRIORITY_NORMAL: 3,
-//	TBB_PRIORITY_HIGH: 4,
-//	TBB_PRIORITY_HIGHEST: 5
-//}
+ConvertTbbToMboxIterator.READ_LINE_BUFFER = 1;
 
+ConvertTbbToMboxIterator.DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+ConvertTbbToMboxIterator.MONTH_MAP = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+/**
+ * Static helper class for manipulation
+ * with files.
+ *
+ * @static
+ */
 FileTools = {
 	
 	/**
@@ -736,13 +1150,21 @@ FileTools = {
 	
 };
 
+/**
+ * Static helper class for manipulation with
+ * Windows registry.
+ *
+ * @static
+ */
 RegTools = {
 	
 	/**
 	 * Reads string value for given registry key
 	 * 
 	 * @param {String} key Fully qualified registry key ("HKCU\\Foo\\Bar\\Value").
-	 * @returns {String} The value.
+	 * @returns {String} The value. If error happens during the read, NULL is returned.
+	 *
+	 * When error happens, NULL is returned.
 	 */
 	readStringValue: function(key) {
 		var key_parts = this._parseKey(key);
@@ -757,11 +1179,18 @@ RegTools = {
 			value = null;
 		}
 		
-		log('RegTools: Read key ['+key+'] got value ['+value+']');
+		//log('RegTools: Read key ['+key+'] got value ['+value+']');
 		
 		return value;
 	},
 	
+	/**
+	 * Split whole path to parts.
+	 * 
+	 * @param {String} The whole registry key
+	 * @returns {Array} Array with three items: root key constant, path, key name.
+	 * @private
+	 */
 	_parseKey: function(key) {
 		var key_parts = key.split('\\');
 		var root_key = key_parts.shift();

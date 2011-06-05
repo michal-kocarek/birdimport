@@ -24,17 +24,32 @@ var test_fn = function() {
 	//console.info('Found mailboxes: ', mailboxes);
 	
 	var reader = ik.createMailboxReader('E:\\WWW\\sandbox\\birdimport\\tbb\\priorities\\MESSAGES.TBB');
-	var i = 0;
-	for(var n in reader) {
-		console.log('Message #'+(++i)+': ', n);
+	
+	var whole_message = '';
+	
+	var flush_data = function(data) {
+		whole_message += data;
+	};
+	
+	var after_message = function(i) {
+		console.info('Message '+i+': '+"\r\n", whole_message);
+		whole_message = '';
+	};
+	
+	var parked_label = function() {
+		return 'parked-the-bat'; // TODO: mk 2011-06-04 22:49:09: Fix this
 	}
 	
+	var converter = new ConvertTbbToMboxIterator(reader, flush_data, after_message, parked_label);
+	var i = 0;
+	
+	converter.convert();
 };
 window.setTimeout(test_fn, 100);
 
 	</script>
 </head>
 <body>
-
+<a href="#" onclick="test_fn(); return false;">test_fn</a>
 </body>
 </html>

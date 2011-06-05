@@ -323,8 +323,11 @@ ImportTheBatMailImpl.prototype = {
 			mbd.identifier = mailbox.identifier;
 			mbd.depth = mailbox.depth;
 			
-			if (mailbox.filepath)
+			if (mailbox.filepath) {
+				// TODO: mk 2011-06-05 03:02:51: Remove the testing comment
+				//mbd.file.initWithPath('E:\\WWW\\sandbox\\birdimport\\tbb\\4 messages - color groups\\03 more messages.TBB'); //mailbox.filepath);
 				mbd.file.initWithPath(mailbox.filepath);
+			}
 			mbd.size = mailbox.size;
 			
 			// This means, whether the actual ImportMailbox function is called, or only the folder is created.
@@ -339,6 +342,16 @@ ImportTheBatMailImpl.prototype = {
 		LOG('FindMailboxes - returns '+arr.Count()+' items');
 		return arr;
 	},
+	
+	/**
+	 * @type TbbMessageIterator
+	 */
+	_reader: null,
+	
+	/**
+	 * @type ConvertTbbToMboxIterator
+	 */
+	_converter: null,
 	
 	/**
 	 * Import a specific mailbox into the destination file supplied.  If an error
@@ -356,9 +369,66 @@ ImportTheBatMailImpl.prototype = {
 	ImportMailbox: function(source, destination, errorLog, successLog, fatalError) {
 		LOG('ImportMailbox [source:'+source.GetDisplayName()+'; destination: '+destination.path+' - '+destination.target+']');
 		
+		var success_msg = 'Proběhl import složky ['+source.GetDisplayName()+']';
+		var error_msg = '';
+		var is_fatal = false;
 		
+		/** @type Components.interfaces.nsIFileOutputStream */
+		var ostream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
+		ostream.init(destination.QueryInterface(Ci.nsILocalFile), -1 /* default PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE */, -1 /* default */, 0);
 		
-		//throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+		/** @type Components.interfaces.nsIBufferedOutputStream */
+		var ostream_buf = Cc["@mozilla.org/network/buffered-output-stream;1"].createInstance(Ci.nsIBufferedOutputStream);
+		ostream_buf.init(ostream, 4096);
+		
+		var flush_data_callback = function(data) {
+			ostream_buf.write(data, data.length);
+		};
+		
+		var after_message_callback = function(i) {
+			LOG('Message ['+i+']');
+			ostream_buf.write("\r\n", 2);
+		};
+		
+		// Keywords described in http://kb.mozillazine.org/Tags
+		// Service http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsIMsgTagService.idl
+		// Usage of service: addTagCallback() in http://mxr.mozilla.org/comm-central/source/mail/components/preferences/display.js
+		parked_label = null;
+		var wants_parked_label_callback = function() {
+			if (parked_label === '') {
+				// First access – we have to return or create the tag
+				/** @type Components.interfaces.nsIMsgTagService */
+				var tag_service = Cc['@mozilla.org/messenger/tagservice;1'].getService(Ci.nsIMsgTagService);
+				parked_label = tag_service.getKeyForTag(strBundle.GetStringFromName('import.thebat.tag.parked.name'));
+				if (!parked_label) {
+					// We have to create the tag
+					tag_service.addTag(strBundle.GetStringFromName('import.thebat.tag.parked.name'), strBundle.GetStringFromName('import.thebat.tag.parked.color'), '');
+					parked_label = tag_service.getKeyForTag(strBundle.GetStringFromName('import.thebat.tag.parked.name'));
+				}
+			}
+			return parked_label;
+		};
+		
+		var reader = ImportKit_TheBat.createMailboxReader(source.file.path);
+		var converter = new ConvertTbbToMboxIterator(reader, flush_data_callback, after_message_callback, wants_parked_label_callback);
+		
+		this._reader = reader;
+		
+		converter.convert();
+		
+		this._reader = null;
+		
+		ostream_buf.QueryInterface(Ci.nsISafeOutputStream);
+		ostream_buf.nsISafeOutputStream.finish();
+		ostream_buf = null; // prevent memory leak
+		
+		ostream.QueryInterface(Ci.nsISafeOutputStream);
+		ostream.finish();
+		ostream = null // prevent memory leak
+		
+		successLog.value = success_msg;
+		errorLog.value = error_msg;
+		fatalError.value = is_fatal;
 	},
 	
 	/**
@@ -370,8 +440,11 @@ ImportTheBatMailImpl.prototype = {
 	 * @returns {Number}
 	 */
 	GetImportProgress: function() {
-		LOG('GetImportProgress');
-		//throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+		var ret = 0;
+		if (this._reader)
+			ret = this._reader.currentPosition;
+		//LOG('GetImportProgress ['+ret+']');
+		return ret;
 	},
 	
 	/**
