@@ -1,16 +1,12 @@
-# // TODO: mk 2011-05-22 11:59:06: Do we need this?
-content	birdimport	chrome/content/
-
-# // TODO: mk 2011-05-22 11:58:55: Do we really need the skin?!
-skin	birdimport	classic/1.0	chrome/skin/
+content   birdimport     chrome/content/
 
 # Resources
 # Maps resource://birdimport/* to files in modules/*
-resource	birdimport	modules/
+resource  birdimport     modules/
 
 # Locales
-locale	birdimport	en-US	chrome/locale/en-US/
-locale	birdimport	cs-CZ	chrome/locale/cs-CZ/
+locale    birdimport     en-US     chrome/locale/en-US/
+locale    birdimport     cs-CZ     chrome/locale/cs-CZ/
 
 # Overlay for the import dialog in Thunderbird
-overlay chrome://messenger/content/importDialog.xul chrome://birdimport/content/importDialogOverlay.xul
+overlay   chrome://messenger/content/importDialog.xul     chrome://birdimport/content/importDialogOverlay.xul
