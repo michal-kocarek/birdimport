@@ -746,7 +746,7 @@ TbbMessageIterator.prototype = {
 		this._istream.init(this._file, 0x01 /* PR_RDONLY */, -1, false);
 		
 		this._bufstream = Cc['@mozilla.org/network/buffered-input-stream;1'].createInstance(Ci.nsIBufferedInputStream);
-		this._bufstream.init(this._istream, 4096);
+		this._bufstream.init(this._istream, 8192);
 		
 		/** @type Components.interfaces.nsIBinaryInputStream */
 		this._bstream = Cc['@mozilla.org/binaryinputstream;1'].createInstance(Ci.nsIBinaryInputStream);
@@ -916,9 +916,9 @@ ConvertTbbToMboxIterator.prototype = {
 				| (flags & TBB_FLAG_DELETED ? MSG_FLAG_EXPUNGED : 0)
 				| (flags & TBB_FLAG_FORWARDED ? MSG_FLAG_FORWARDED : 0);
 			
+			// mk: „New“ status is not being set.
 			status2_x =
-				  (flags & TBB_FLAG_READ ? 0 : MSG_FLAG_NEW)
-				| (flags & TBB_FLAG_HAS_ATTACHMENT ? MSG_FLAG_ATTACHMENT : 0);
+				  (flags & TBB_FLAG_HAS_ATTACHMENT ? MSG_FLAG_ATTACHMENT : 0);
 			
 			// Compose keywords (parked label)
 			keywords_x = '';
@@ -1089,7 +1089,7 @@ ConvertTbbToMboxIterator.prototype = {
 	
 };
 
-ConvertTbbToMboxIterator.READ_LINE_BUFFER = 4096;
+ConvertTbbToMboxIterator.READ_LINE_BUFFER = 8192;
 
 ConvertTbbToMboxIterator.DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
