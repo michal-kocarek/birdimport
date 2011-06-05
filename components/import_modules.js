@@ -379,14 +379,15 @@ ImportTheBatMailImpl.prototype = {
 		
 		/** @type Components.interfaces.nsIBufferedOutputStream */
 		var ostream_buf = Cc["@mozilla.org/network/buffered-output-stream;1"].createInstance(Ci.nsIBufferedOutputStream);
-		ostream_buf.init(ostream, 4096);
+		ostream_buf.init(ostream, 8192);
 		
 		var flush_data_callback = function(data) {
 			ostream_buf.write(data, data.length);
 		};
 		
 		var after_message_callback = function(i) {
-			LOG('Message ['+i+']');
+			if (i%50 == 0)
+				LOG('Message ['+i+']');
 			ostream_buf.write("\r\n", 2);
 		};
 		
