@@ -33,9 +33,8 @@
 		<em:creator>Michal Kočárek</em:creator>
 		<!--<em:contributor>Extension icon icons used are from the famfamfam Silk Icon Set, licensed under a Creative Commons Attribution 2.5 License</em:contributor>-->
 		
-		<!--<iconURL>chrome://birdimport/icon.png</iconURL>--><!-- This path because of https://developer.mozilla.org/en/Updating_extensions_for_Firefox_3.6 -->
-		<!--<homepageURL>…</homepageURL>-->
-		<!--<aboutURL>chrome://birdimport/content/about.xul</aboutURL>-->
+		<!--<em:iconURL>chrome://birdimport/icon.png</em:iconURL>--><!-- This path because of https://developer.mozilla.org/en/Updating_extensions_for_Firefox_3.6 -->
+		<em:homepageURL>http://brainbox.cz/birdimport/</em:homepageURL>
 		
 		<em:localized>
 			<Description>
