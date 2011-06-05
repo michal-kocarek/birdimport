@@ -291,6 +291,9 @@ ImportTheBatMailImpl.prototype = {
 	ImportMailbox: function(source, destination, errorLog, successLog, fatalError) {
 		LOG('ImportMailbox [source:'+source.GetDisplayName()+'; destination: '+destination.path+' - '+destination.target+']');
 		
+		var parked_tag_name = 'PPP';//strBundle.GetStringFromName('import.thebat.tag.parked.name');
+		var parked_tag_color = '#ff00ff';//strBundle.GetStringFromName('import.thebat.tag.parked.color');
+		
 		var success_msg = 'Proběhl import složky ['+source.GetDisplayName()+']';
 		var error_msg = '';
 		var is_fatal = false;
@@ -318,17 +321,18 @@ ImportTheBatMailImpl.prototype = {
 		// Usage of service: addTagCallback() in http://mxr.mozilla.org/comm-central/source/mail/components/preferences/display.js
 		parked_label = null;
 		var wants_parked_label_callback = function() {
-			if (parked_label === '') {
+			if (parked_label === null) {
 				// First access – we have to return or create the tag
 				/** @type Components.interfaces.nsIMsgTagService */
 				var tag_service = Cc['@mozilla.org/messenger/tagservice;1'].getService(Ci.nsIMsgTagService);
-				parked_label = tag_service.getKeyForTag(strBundle.GetStringFromName('import.thebat.tag.parked.name'));
+				parked_label = tag_service.getKeyForTag(parked_tag_name);
 				if (!parked_label) {
 					// We have to create the tag
-					tag_service.addTag(strBundle.GetStringFromName('import.thebat.tag.parked.name'), strBundle.GetStringFromName('import.thebat.tag.parked.color'), '');
-					parked_label = tag_service.getKeyForTag(strBundle.GetStringFromName('import.thebat.tag.parked.name'));
+					tag_service.addTag(parked_tag_name, parked_tag_color, '');
+					parked_label = tag_service.getKeyForTag(parked_tag_name);
 				}
 			}
+			LOG('Have parked label: '+parked_label);
 			return parked_label;
 		};
 		
