@@ -291,6 +291,10 @@ ImportTheBatMailImpl.prototype = {
 	ImportMailbox: function(source, destination, errorLog, successLog, fatalError) {
 		LOG('ImportMailbox [source:'+source.GetDisplayName()+'; destination: '+destination.path+' - '+destination.target+']');
 		
+		// True/false according whether we are importing the Outbox folder.
+		// FIX: mk 2011-06-05 20:08:14: We need special care for the Outbox folder.
+		var is_importing_outbox = source.depth == 2 && source.file.parent.leafName == 'Outbox';
+		
 		var parked_tag_name = strBundle.GetStringFromName('import.thebat.tag.parked.name');
 		var parked_tag_color = strBundle.GetStringFromName('import.thebat.tag.parked.color');
 		
@@ -339,6 +343,7 @@ ImportTheBatMailImpl.prototype = {
 		
 		var reader = ImportKit_TheBat.createMailboxReader(source.file.path);
 		var converter = new ConvertTbbToMboxIterator(reader, flush_data_callback, after_message_callback, wants_parked_label_callback);
+		converter.isConvertingOutbox = is_importing_outbox;
 		
 		this._reader = reader;
 		

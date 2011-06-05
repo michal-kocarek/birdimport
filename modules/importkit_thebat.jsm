@@ -179,7 +179,7 @@ const MSG_FLAG_REPLIED = Ci.nsMsgMessageFlags.Replied;
 /**
  * MBOX Status flag for flagged message.
  */
-const MSG_FLAG_MARKED = Ci.nsMsgMessageFlags.Flagged;
+const MSG_FLAG_MARKED = Ci.nsMsgMessageFlags.Marked;
 
 /**
  * MBOX Status flag for expunged message.
@@ -867,6 +867,12 @@ ConvertTbbToMboxIterator.prototype = {
 	_isEofBuffer: false,
 	
 	/**
+	 * @type Boolean
+	 * Needs to be set to true, when converting outbox folder.
+	 */
+	isConvertingOutbox: false,
+	
+	/**
 	 * Loops over the inner iterator and converts the message to the
 	 * Thunderbird format.
 	 */
@@ -917,14 +923,18 @@ ConvertTbbToMboxIterator.prototype = {
 				| (flags & TBB_FLAG_FORWARDED ? MSG_FLAG_FORWARDED : 0);
 			
 			// mk: „New“ status is not being set.
-			status2_x =
+			status2_x = 
 				  (flags & TBB_FLAG_HAS_ATTACHMENT ? MSG_FLAG_ATTACHMENT : 0);
 			
 			// Compose keywords (parked label)
+			// FIX: mk 2011-06-05 20:02:34: Not sent messages are marked as Parked in the Outbox folder.
+			// Do not transfer the Parked flag for this folder.
 			keywords_x = '';
-			if (flags & TBB_FLAG_PARKED) {
+			if (!this.isConvertingOutbox && (flags & TBB_FLAG_PARKED)) {
 				if (this._parkedLabelKey === null) {
 					this._parkedLabelKey = this._onWantsParkedLabel();
+					if (!this._parkedLabelKey)
+						this._parkedLabelKey = false;
 				}
 				if (this._parkedLabelKey) {
 					keywords_x = this._parkedLabelKey;
@@ -949,7 +959,7 @@ ConvertTbbToMboxIterator.prototype = {
 					from_date = new Date(line.substr(6).trim());
 					if (from_date.getYear() === NaN)
 						from_date = null;
-				} else if(line_start_c === 88 /* X */ && line.indexOf('X-Mozilla-') === 0) {
+				} else if (line_start_c === 88 /* X */ && line.indexOf('X-Mozilla-') === 0) {
 					// Strip existing Mozilla headers as they could cause problems
 					if (line.indexOf(X_MOZILLA_STATUS_PREFIX) === 0
 						|| line.indexOf(X_MOZILLA_STATUS2_PREFIX) === 0
@@ -958,7 +968,6 @@ ConvertTbbToMboxIterator.prototype = {
 					}
 					// else leave the header, because we do not know how important it is
 				}
-				
 				headers_array.push(line);
 			}
 			headers_array.push(line); // add the last line
