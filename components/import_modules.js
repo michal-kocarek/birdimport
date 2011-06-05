@@ -44,10 +44,9 @@ const Cr = Components.results;
 
 // TODO: mk 2011-05-22 18:30:46: Get rid of / turn off the LOG()
 function LOG(msg) {
-	/** @type Components.interfaces.nsIConsoleService */
-	var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
-	
-	consoleService.logStringMessage('IM: '+msg);
+	///** @type Components.interfaces.nsIConsoleService */
+	//var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
+	//consoleService.logStringMessage('IM: '+msg);
 }
 
 // TODO: mk 2011-05-22 18:30:35: Get rid of dbgmd in this file
