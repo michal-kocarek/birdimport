@@ -21,6 +21,9 @@
 
 <!--
 	Overlay the Mozilla Thunderbird Import dialog.
+	
+	importDialog.xul source: http://mxr.mozilla.org/mozilla/source/mailnews/import/resources/content/importDialog.xul
+	importDialog.js source: http://mxr.mozilla.org/mozilla/source/mailnews/import/resources/content/importDialog.js
 -->
 <overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 	<script type="application/x-javascript" src="importDialogOverlay.js"/>
