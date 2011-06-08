@@ -25,7 +25,7 @@
  * and that allows importing the The Bat! e-mails.
  *
  * We are not registering the importer permanently, because it is buggy.
- *
+ * 
  * @author Michal Kočárek michal.kocarek@brainbox.cz
  * @since 2011.06.04
  */

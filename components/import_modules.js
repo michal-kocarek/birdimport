@@ -25,6 +25,9 @@
 // Import XPCOMUtils for setting the migrator component.
 Components.utils.import('resource://gre/modules/XPCOMUtils.jsm');
 
+// Import PluralForm for better localization possibilities
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 var jsm_lazyloaded = false;
 function jsm_lazyload() {
 	// FIX: mk 2011-05-30 20:04:59: In Gecko < 2.0 are modules loaded before .jsm modules,
@@ -35,19 +38,12 @@ function jsm_lazyload() {
 	if (jsm_lazyloaded)
 		return;
 	jsm_lazyloaded = true;
-	Components.utils.import('resource://birdimport/importkit_thebat.jsm');
+	Components.utils.import('resource://birdimport/tbtools.jsm');
 }
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
-
-// TODO: mk 2011-05-22 18:30:46: Get rid of / turn off the LOG()
-function LOG(msg) {
-	///** @type Components.interfaces.nsIConsoleService */
-	//var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
-	//consoleService.logStringMessage('IM: '+msg);
-}
 
 /**
  * Class ID of the The Bat! import module.
@@ -77,7 +73,7 @@ var strBundle = strBundleSrv.createBundle('chrome://birdimport/locale/birdimport
  */
 function TheBatImportModule() {
 	jsm_lazyload();
-	LOG('TheBatImportModule ctor');
+	TbTools.log('TheBatImportModule ctor');
 }
 
 TheBatImportModule.prototype = {
@@ -143,16 +139,16 @@ TheBatImportModule.prototype = {
 			var name_str = Components.classes['@mozilla.org/supports-string;1'].createInstance(Components.interfaces.nsISupportsString);
 			name_str.data = strBundle.GetStringFromName('import.thebat.name');
 			
-			// Assignments inspired by http://mxr.mozilla.org/comm-central/source/mailnews/import/oexpress/nsOEImport.cpp, nsOEImport::GetImportIterface()
+			// Assignments to iGeneric inspired by http://mxr.mozilla.org/comm-central/source/mailnews/import/oexpress/nsOEImport.cpp, nsOEImport::GetImportIterface()
 			// and http://mxr.mozilla.org/comm-central/source/mailnews/import/applemail/src/nsAppleMailImport.cpp, nsAppleMailImportModule::GetImportIterface()
 			// Data keys are described in the interface.
 			
 			iGeneric.SetData('mailInterface', importMailImpl);
 			
-			// mk: Thunderbird uses the name attribute for composing the name of the root folder, where all imported e-mails are filed.
+			// mk: This attribute is used as part of name for the root target folder.
 			iGeneric.SetData('name', name_str);
 			
-			LOG('GetImportIterface: Return prepared nsIImportGeneric');
+			TbTools.log('GetImportIterface: Return prepared nsIImportGeneric');
 			return iGeneric;
 		}
 		
@@ -169,7 +165,7 @@ TheBatImportModule.prototype = {
  */
 function ImportTheBatMailImpl() {
 	jsm_lazyload();
-	LOG('ImportTheBatMailImpl ctor');
+	TbTools.log('ImportTheBatMailImpl ctor');
 }
 
 ImportTheBatMailImpl.prototype = {
@@ -196,25 +192,31 @@ ImportTheBatMailImpl.prototype = {
 	 */
 	GetDefaultLocation: function(location, found, userVerify) {
 		
-		var location_str = ImportKit_TheBat.detectLocation();
+		var location_str = TbTools.detectLocation();
 		
 		if (location_str) {
-			var location_file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+			var location_file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
 			location_file.initWithPath(location_str);
 			
 			location.value = location_file;
 			found.value = true;
 			userVerify.value = false;
 			
-			LOG('GetDefaultLocation found - ['+location_file.path+']');
+			TbTools.log('GetDefaultLocation found - ['+location_file.path+']');
 		} else {
-			LOG('GetDefaultLocation not found');
+			TbTools.log('GetDefaultLocation not found');
 			
 			location.value = null;
 			found.value = false;
-			userVerify.value = true; // Give the user the ability to choose the directory with The Bat! files
+			userVerify.value = false; // true: Give the user the ability to choose the directory; false: do not
 		}
 	},
+	
+	/**
+	 * @type Array
+	 * Array of mailbox info get in FindMailboxes().
+	 */
+	_mailboxes: [],
 	
 	/**
 	 * Returns an nsISupportsArray which contains an nsIImportMailboxID for each
@@ -224,31 +226,33 @@ ImportTheBatMailImpl.prototype = {
 	 * @returns {Components.interfaces.nsISupportsArray}
 	 */
 	FindMailboxes: function(location) {
-		LOG('FindMailboxes [location:'+location.path+']');
+		TbTools.log('FindMailboxes [location:'+location.path+']');
+		
+		// Get mailbox info
+		this._mailboxes = TbTools.findMailboxes(location.path);
+		
+		/** @type Components.interfaces.nsIImportService
+		 * Import service http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportService.idl */
+		var importService = Cc['@mozilla.org/import/import-service;1'].getService(Ci.nsIImportService);
 		
 		/** @type Components.interfaces.nsISupportsArray */
 		var arr = Cc['@mozilla.org/supports-array;1'].createInstance(Ci.nsISupportsArray);
 		
-		// Get mailbox info
-		var mailboxes = ImportKit_TheBat.findMailboxes(location.path);
-		
-		// Import service http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportService.idl
-		var importService = Cc['@mozilla.org/import/import-service;1'].getService().QueryInterface(Ci.nsIImportService);
-		
-		/** @type Components.interfaces.nsIImportMailboxDescriptor
-			http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportMailboxDescriptor.idl */
-		
-		for(var i in mailboxes) {
-			var mailbox = mailboxes[i];
+		for(var i in this._mailboxes) {
+			var mailbox = this._mailboxes[i];
+			
+			/** @type Components.interfaces.nsIImportMailboxDescriptor
+			 * http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportMailboxDescriptor.idl */
 			var mbd = importService.CreateNewMailboxDescriptor();
 			
-			mbd.identifier = mailbox.identifier;
+			mbd.identifier = i; // use index of the _mailboxes array, because this is used in ImportMailbox as well
 			mbd.depth = mailbox.depth;
 			
 			if (mailbox.filepath) {
+				mbd.file.initWithPath(mailbox.filepath);
 				// TODO: mk 2011-06-05 03:02:51: Remove the testing comment
 				//mbd.file.initWithPath('E:\\WWW\\sandbox\\birdimport\\tbb\\4 messages - color groups\\03 more messages.TBB'); //mailbox.filepath);
-				mbd.file.initWithPath(mailbox.filepath);
+				//mbd.file.initWithPath('E:\\WWW\\sandbox\\birdimport\\tbb\\Testing (attachments outside)\\Inbox\\MESSAGES.TBB'); //mailbox.filepath);
 			}
 			mbd.size = mailbox.size;
 			
@@ -257,11 +261,11 @@ ImportTheBatMailImpl.prototype = {
 			
 			mbd.SetDisplayName(mailbox.dirname);
 			
-			//LOG('FindMailboxes - appending box [id:'+mbd.identifier+'; displayname:'+mbd.GetDisplayName()+'] on path ['+mbd.file.path+']');
+			//TbTools.log('FindMailboxes - appending box [id:'+mbd.identifier+'; displayname:'+mbd.GetDisplayName()+'] on path ['+mbd.file.path+']');
 			arr.AppendElement(mbd);
 		}
 		
-		LOG('FindMailboxes - returns '+arr.Count()+' items');
+		TbTools.log('FindMailboxes - returns '+arr.Count()+' items');
 		return arr;
 	},
 	
@@ -269,11 +273,6 @@ ImportTheBatMailImpl.prototype = {
 	 * @type TbbMessageIterator
 	 */
 	_reader: null,
-	
-	/**
-	 * @type ConvertTbbToMboxIterator
-	 */
-	_converter: null,
 	
 	/**
 	 * Import a specific mailbox into the destination file supplied.  If an error
@@ -289,7 +288,7 @@ ImportTheBatMailImpl.prototype = {
 	 * @returns {Null}
 	 */
 	ImportMailbox: function(source, destination, errorLog, successLog, fatalError) {
-		LOG('ImportMailbox [source:'+source.GetDisplayName()+'; destination: '+destination.path+' - '+destination.target+']');
+		TbTools.log('ImportMailbox [source:'+source.GetDisplayName()+'; destination: '+destination.path+' - '+destination.target+']');
 		
 		// True/false according whether we are importing the Outbox folder.
 		// FIX: mk 2011-06-05 20:08:14: We need special care for the Outbox folder.
@@ -298,27 +297,18 @@ ImportTheBatMailImpl.prototype = {
 		var parked_tag_name = strBundle.GetStringFromName('import.thebat.tag.parked.name');
 		var parked_tag_color = strBundle.GetStringFromName('import.thebat.tag.parked.color');
 		
-		// TODO: mk 2011-06-05 16:43:02: Fix these messages!
-		var success_msg = 'Proběhl import složky ['+source.GetDisplayName()+']';
-		var error_msg = '';
-		var is_fatal = false;
-		
-		/** @type Components.interfaces.nsIFileOutputStream */
-		var ostream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
-		ostream.init(destination.QueryInterface(Ci.nsILocalFile), -1 /* default PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE */, -1 /* default */, 0);
-		
-		/** @type Components.interfaces.nsIBufferedOutputStream */
-		var ostream_buf = Cc["@mozilla.org/network/buffered-output-stream;1"].createInstance(Ci.nsIBufferedOutputStream);
-		ostream_buf.init(ostream, 8192);
+		var ostream, ostream_buf,
+			success_msg = '', error_msg = '', is_fatal = false,
+			mailbox = this._mailboxes[ source.identifier ]; // identifier is index from the array;
 		
 		var flush_data_callback = function(data) {
 			ostream_buf.write(data, data.length);
 		};
 		
 		var after_message_callback = function(i) {
-			if (i%50 == 0)
-				LOG('Message ['+i+']');
-			ostream_buf.write("\r\n", 2);
+			if (i%100 == 0)
+				TbTools.log('Imported '+i+' messages.');
+			ostream_buf.write("\r\n", 2 /* 2 = length of \r\n */);
 		};
 		
 		// Keywords described in http://kb.mozillazine.org/Tags
@@ -337,27 +327,52 @@ ImportTheBatMailImpl.prototype = {
 					parked_label = tag_service.getKeyForTag(parked_tag_name);
 				}
 			}
-			LOG('Have parked label: '+parked_label);
+			TbTools.log('Have parked label: '+parked_label);
 			return parked_label;
 		};
 		
-		var reader = ImportKit_TheBat.createMailboxReader(source.file.path);
+		var reader = new TbbMessageIterator(source.file.path);
 		var converter = new ConvertTbbToMboxIterator(reader, flush_data_callback, after_message_callback, wants_parked_label_callback);
 		converter.isConvertingOutbox = is_importing_outbox;
 		
-		this._reader = reader;
-		
-		converter.convert();
-		
-		this._reader = null;
-		
-		ostream_buf.QueryInterface(Ci.nsISafeOutputStream);
-		ostream_buf.nsISafeOutputStream.finish();
-		ostream_buf = null; // prevent memory leak
-		
-		ostream.QueryInterface(Ci.nsISafeOutputStream);
-		ostream.finish();
-		ostream = null // prevent memory leak
+		try {
+			
+			/** @type Components.interfaces.nsIFileOutputStream */
+			ostream = Cc["@mozilla.org/network/safe-file-output-stream;1"].createInstance(Ci.nsIFileOutputStream);
+			ostream.init(destination.QueryInterface(Ci.nsILocalFile), -1 /* default PR_WRONLY | PR_CREATE_FILE | PR_TRUNCATE */, -1 /* default */, 0);
+			
+			/** @type Components.interfaces.nsIBufferedOutputStream */
+			ostream_buf = Cc['@mozilla.org/network/buffered-output-stream;1'].createInstance(Ci.nsIBufferedOutputStream);
+			ostream_buf.init(ostream, 8192);
+			
+			this._reader = reader; // keep this for GetImportProgress, because it may be called from different thread
+			
+			converter.convert();
+			
+			this._reader = null;
+			
+			// Everything’s fine
+			success_msg = this._formatSuccessMessage(mailbox, converter.convertedEmails);
+		} catch(ex) {
+			// Modify a bit the exception to contain more information for the log
+			ex.message = 'ImportMailbox ['+mailbox.relativepath+'] ('+converter.convertedEmails+'): '+ex.message+"\r\n\r\nStacktrace:\r\n"+ex.stack;
+			Components.utils.reportError(ex); // Log the error
+			
+			error_msg = this._formatErrorMessage(mailbox); // Store the message
+		} finally {
+			// Finalize - close all handles
+			if (ostream_buf) {
+				ostream_buf.QueryInterface(Ci.nsISafeOutputStream);
+				ostream_buf.nsISafeOutputStream.finish();
+				ostream_buf = null; // prevent memory leak
+			}
+			
+			if (ostream) {
+				ostream.QueryInterface(Ci.nsISafeOutputStream);
+				ostream.finish();
+				ostream = null // prevent memory leak
+			}
+		}
 		
 		successLog.value = success_msg;
 		errorLog.value = error_msg;
@@ -376,7 +391,7 @@ ImportTheBatMailImpl.prototype = {
 		var ret = 0;
 		if (this._reader)
 			ret = this._reader.currentPosition;
-		//LOG('GetImportProgress ['+ret+']');
+		//TbTools.log('GetImportProgress ['+ret+']');
 		return ret;
 	},
 	
@@ -390,14 +405,40 @@ ImportTheBatMailImpl.prototype = {
 	 * @returns {String}
 	 */
 	translateFolderName: function(aFolderName) {
-		var return_name = aFolderName;
-		//throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+		// mk 2011-05-30 20:15:54: I really don’t know, where is this function used.
+		// So just return the original name.
+		var return_name = aFolderName+'-x';
 		
-		// TODO: mk 2011-05-30 20:15:54: Didn’t found when this is used
+		TbTools.log('translateFolderName ['+aFolderName+'] -> ['+return_name+']');
+		return return_name;
+	},
+	
+	/**
+	 * @private
+	 */
+	_formatSuccessMessage: function(mailbox, message_count) {
+		// Format the number of imported messages first.
+		var message,
+			imported_part = PluralForm.get(message_count, strBundle.GetStringFromName('import.thebat.success.count'));
+		imported_part = imported_part.replace('%d', message_count);
 		
-		LOG('translateFolderName ['+aFolderName+'] -> ['+return_name+']');
-		return aFolderName;
+		let (args = [mailbox.relativepath, imported_part]) {
+			message = strBundle.formatStringFromName('import.thebat.success', args, args.length)+"\r\n";
+		};
+		return message;
+	},
+	
+	/**
+	 * @private
+	 */
+	_formatErrorMessage: function(mailbox) {
+		var message;
+		let (args = [mailbox.relativepath]) {
+			message = strBundle.formatStringFromName('import.thebat.error', args, args.length)+"\r\n";
+		};
+		return message;
 	}
+	
 };
 
 var components = [TheBatImportModule, ImportTheBatMailImpl];

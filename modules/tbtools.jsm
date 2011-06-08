@@ -19,16 +19,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * // TODO: mk 2011-05-22 14:36:46: Add here caption
+ * Script contains XPCOM modules for Mozilla Thunderbird.
  * 
  * @author Michal Kočárek michal.kocarek@brainbox.cz
+ * @since 2011.06.04
  */
 
-// TODO: mk 2011-05-22 15:03:24: FIX THIS!
-//netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
-
 // Symbols exported to the outer scope.
-const EXPORTED_SYMBOLS = ['ImportKit_TheBat', 'ConvertTbbToMboxIterator'];
+const EXPORTED_SYMBOLS = ['TbTools', 'TbbMessageIterator', 'ConvertTbbToMboxIterator'];
 
 // Shorthands
 const Cc = Components.classes;
@@ -39,7 +37,14 @@ const Ci = Components.interfaces;
  *
  * Value is REG_SZ, but can contain environment variables. ("%APPDATA%\The Bat!")
  */
-const USERDIR_REGKEY = 'HKCU\\SOFTWARE\\RIT\\The Bat!\\Working Directory';
+const TB_USERDIR_REGKEY = 'HKCU\\SOFTWARE\\RIT\\The Bat!\\Working Directory';
+
+/**
+ * Registry key containing the path to The Bat! version.
+ *
+ * Value is REG_SZ. ("5.0.12")
+ */
+const TB_VERSION_REGKEY = 'HKCU\\SOFTWARE\\RIT\\The Bat!\\Version';
 
 /**
  * Registry key containing the current ANSI codepage number used by the system.
@@ -103,6 +108,8 @@ const TBB_FLAG_HAS_ATTACHMENT = 1 << 4;
 /**
  * The attachments are not included in message flag in TBB file.
  *
+ * mk: I Haven't found that this flag is being used.
+ *
  * Thunderbird does not have this kind of flag.
  */
 const TBB_FLAG_ATTACHMENT_NOT_INCLUDED = 1 << 5;
@@ -129,7 +136,7 @@ const MBOX_SPLIT_PREFIX = 'From - ';
 /**
  * MBOX default splitter line incl. newline character (when date was not found).
  */
-const MBOX_SPLIT_DEFAULT = "From - Fri Dec 31 23:59:59 1999\r\n";
+const MBOX_SPLIT_DEFAULT = "From - Mon Jan 1 11:11:11 1970\r\n";
 
 /**
  * MBOX newline character
@@ -165,7 +172,6 @@ const X_MOZILLA_KEYWORDS_PREFIX = 'X-Mozilla-Keys:';
 const X_MOZILLA_KEYWORDS_MIN_LENGTH = '                                                                                '; // 80 chars
                                     /* 0---------10--------20--------30--------40--------50--------60--------70--------80 */
 
-// TODO: mk 2011-06-05 01:42:16: FIX THIS
 /**
  * MBOX Status flag for read message.
  */
@@ -201,13 +207,14 @@ const MSG_FLAG_NEW = Ci.nsMsgMessageFlags.New;
  */
 const MSG_FLAG_ATTACHMENT = Ci.nsMsgMessageFlags.Attachment;
 
+
+/** @type Components.interfaces.nsIConsoleService
+ * Lazy loaded console service */
+var console_service = null;
 function log(msg) {
-	// TODO: mk 2011-05-22 15:25:31: FIX THIS
-	//console.log('IK: '+msg); return;
-	//
-	///** @type Components.interfaces.nsIConsoleService */
-	//var consoleService = Components.classes["@mozilla.org/consoleservice;1"].getService(Components.interfaces.nsIConsoleService);
-	//consoleService.logStringMessage('IK: '+msg);
+	if (console_service === null)
+		console_service = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
+	console_service.logStringMessage('TB: '+msg);
 }
 
 /**
@@ -215,7 +222,7 @@ function log(msg) {
  * 
  * @static
  */
-ImportKit_TheBat = {
+TbTools = {
 	
 	/**
 	 * Detect the location of The Bat! files.
@@ -224,7 +231,7 @@ ImportKit_TheBat = {
 	 */
 	detectLocation: function() {
 		
-		var user_dir = RegTools.readStringValue(USERDIR_REGKEY);
+		var user_dir = RegTools.readStringValue(TB_USERDIR_REGKEY);
 		
 		if (!user_dir)
 			return false;
@@ -263,15 +270,12 @@ ImportKit_TheBat = {
 	},
 	
 	/**
-	 * Returns new instance of the TBB mailbox parser.
+	 * Provides unified interfaces for logging messages for The Bat! importer module.
 	 *
-	 * @param {String} Filepath to the .TBB file.
-	 * @returns {TbbMessageIterator} New instance of the parser.
+	 * @param {String} message Message to log.
 	 */
-	createMailboxReader: function(filepath) {
-		// TODO: mk 2011-05-30 21:27:29: Tohle by se dalo klidně vyexternalizovat jako Symbol
-		var reader = new TbbMessageIterator(filepath);
-		return reader;
+	log: function(message) {
+		log(message);
 	}
 	
 };
@@ -360,6 +364,7 @@ TbMailboxFinder.prototype = {
 	 * This iterator discovers account folder paths and returns them as String.
 	 *
 	 * @yields {String} Account folder dirpath.
+	 * 
 	 * @private
 	 */
 	_discoverAccountFolders: function() {
@@ -409,10 +414,10 @@ TbMailboxFinder.prototype = {
 		// Process lines array
 		for(var i = 0, lines_length = lines.length; i < lines_length; ++i) {
 			var line = lines[i], matches, dirname;
-			if (matches = line.match(/^\\\\([^\\]+)$/)) {
+			if (!!(matches = line.match(/^\\\\([^\\]+)$/))) {
 				// \\account_name
 				dirname = matches[1];
-			} else if (matches = line.match(/^\\\\\\([^\\]+)$/)) {
+			} else if (!!(matches = line.match(/^\\\\\\([^\\]+)$/))) {
 				// \\folder_name
 				dirname = matches[1];
 			} else {
@@ -437,8 +442,12 @@ TbMailboxFinder.prototype = {
 	 * and recursively discovers mailboxes in subdirectories (calls itself).
 	 *
 	 * @param {String} dirpath The current directory path.
+	 * @param {Array} prev_dirnames Array of previous directory names.
+	 * 
+	 * @private
 	 */
-	_discoverMailboxes: function(dirpath) {
+	_discoverMailboxes: function(dirpath, prev_dirnames) {
+		prev_dirnames = (prev_dirnames || []).slice(); // get the copy of object so we’ll not overwrite the passed one
 		
 		// First check, if there is a mailbox file in this folder.
 		// If so, add it to the results.
@@ -459,31 +468,38 @@ TbMailboxFinder.prototype = {
 			}
 		}
 		
+		prev_dirnames.push(dirpath_file.leafName);
+		var displayname = prev_dirnames.join('/');
+		
 		if (mailbox_file.exists()) {
 			// Add the result object.
-			this._addMailboxToResults(mailbox_file.path, mailbox_file.fileSize, dirpath_file.leafName, true);
+			this._addMailboxToResults(mailbox_file.path, mailbox_file.fileSize, dirpath_file.leafName, displayname, true);
 		} else if (subdirectories.length) {
-			this._addMailboxToResults(null, 0, dirpath_file.leafName, false); // do not actually do the import, just create folder
+			this._addMailboxToResults(null, 0, dirpath_file.leafName, displayname, false); // do not actually do the import, just create folder
 		}
 		
 		++this._depth;
 		for(var i = 0, subdirectories_length = subdirectories.length; i < subdirectories_length; ++i) {
-			this._discoverMailboxes(subdirectories[i]);
+			this._discoverMailboxes(subdirectories[i], prev_dirnames);
 		}
 		--this._depth;
 		
 	},
 	
-	_addMailboxToResults: function(filepath, filesize, dirname, do_import) {
+	/**
+	 * @private
+	 */
+	_addMailboxToResults: function(filepath, filesize, dirname, relativepath, do_import) {
 		var mailbox = {
 			identifier: this._mailboxes.length,
 			depth: this._depth,
 			filepath: filepath,
 			size: filesize,
 			dirname: dirname,
+			relativepath: relativepath,
 			do_import: do_import
 		};
-		//log('Adding result [identifier: '+mailbox.identifier+'; depth: '+mailbox.depth+'; dirname: '+mailbox.dirname+'; size:'+mailbox.size+'; filepath:'+mailbox.filepath+']');
+		//log('Adding result [identifier: '+mailbox.identifier+'; depth: '+mailbox.depth+'; size:'+mailbox.size+'; filepath:'+mailbox.filepath+']');
 		this._mailboxes.push(mailbox);
 	}
 	
@@ -503,6 +519,20 @@ function TbbMessageIterator(filepath) {
 }
 
 TbbMessageIterator.prototype = {
+	
+	/**
+	 * @property Read-only set of TBB flags for current message.
+	 *
+	 * Flags can be bitmasked with TBB constants.
+	 */
+	messageFlags: 0,
+	
+	/**
+	 * @property Read-only received/created time for current message.
+	 *
+	 * Stored in format of Unix timestamp.
+	 */
+	receivedTimestamp: 0,
 	
 	/**
 	 * Filepath to the TBB file
@@ -547,11 +577,6 @@ TbbMessageIterator.prototype = {
 	},
 	
 	/**
-	 * @type Number
-	 */
-	_messageFlags: 0,
-	
-	/**
 	 * Total length of current message.
 	 */
 	_messageLength: 0,
@@ -560,17 +585,6 @@ TbbMessageIterator.prototype = {
 	 * Available length of message, which can be read.
 	 */
 	_messageLengthAvailable: 0,
-	
-	/**
-	 * Returns the TBB flags of current message.
-	 *
-	 * Flags can be bitmasked with TBB constants.
-	 *
-	 * @returns {Number} TBB flags.
-	 */
-	get messageFlags() {
-		return this._messageFlags;
-	},
 	
 	/**
 	 * Iterates over the TBB file and returns e-mail messages for
@@ -588,7 +602,7 @@ TbbMessageIterator.prototype = {
 		var i = 0;
 		while(this._bstream.available()) {
 			this._readMessageHeader();
-			yield i++; // Return the message index.
+			yield i++; // Return the message index, starting at 0.
 			
 			// If the ugly developer didn’t read all the message, finish the reading before jumping to next message.
 			if (this._messageLengthAvailable)
@@ -674,12 +688,15 @@ TbbMessageIterator.prototype = {
 		// 36…39 Size of the variable part (size of the message) (little endian)
 		// 40…47 unknown (?zeros?)
 		
-		// I am interested only in message status flag and variable part size
+		/* var skip08to11 = */ bs.readBytes(4, null);
 		
-		/* var skip08to19 = */ bs.readBytes(12, null);
+		// 12…15 Received time (unix timestamp, little endian)
+		this.receivedTimestamp = this._endianSwap32(bs.read32());
+		
+		/* var skip16to19 = */ bs.readBytes(4, null);
 		
 		// Read the message flags (TBB_FLAG_* bitfield)
-		this._messageFlags = this._endianSwap32(bs.read32());
+		this.messageFlags = this._endianSwap32(bs.read32());
 		
 		/* var skip24to35 = */ bs.readBytes(12, null);
 		
@@ -799,6 +816,12 @@ function ConvertTbbToMboxIterator(message_iterator, flush_data_callback, after_m
 ConvertTbbToMboxIterator.prototype = {
 	
 	/**
+	 * @type Boolean
+	 * Needs to be set to true, when converting outbox folder.
+	 */
+	isConvertingOutbox: false,
+	
+	/**
 	 * @type TbbMessageIterator
 	 */
 	_messageIterator: null,
@@ -866,22 +889,23 @@ ConvertTbbToMboxIterator.prototype = {
 	 */
 	_isEofBuffer: false,
 	
-	/**
-	 * @type Boolean
-	 * Needs to be set to true, when converting outbox folder.
-	 */
-	isConvertingOutbox: false,
+	_convertedEmails: 0,
+	
+	get convertedEmails() {
+		return this._convertedEmails;
+	},
 	
 	/**
 	 * Loops over the inner iterator and converts the message to the
 	 * Thunderbird format.
 	 */
 	convert: function() {
-		
 		// X-Mozilla-? header description:
 		// http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgLocalFolderHdrs.h and
 		// http://www.eyrich-net.org/mozilla/X-Mozilla-Status.html?en and
 		// http://mxr.mozilla.org/comm-central/source/mailnews/base/public/nsMsgMessageFlags.idl
+		
+		this._convertedEmails = 0;
 		
 		var mi = this._messageIterator,
 			line,
@@ -911,8 +935,6 @@ ConvertTbbToMboxIterator.prototype = {
 			//log('Parsing headers');
 			
 			flags = mi.messageFlags;
-			
-			// TODO: mk 2011-06-05 01:42:23: FIX THIS
 			
 			// Compose status
 			status_x =
@@ -954,12 +976,20 @@ ConvertTbbToMboxIterator.prototype = {
 			for (line = this._readLine(); !this._isEof && line.trim(); line = this._readLine()) {
 				line_start_c = line.charCodeAt(0);
 				
-				if (line_start_c === 68 /* D */ && line.indexOf('Date: ') === 0) {
-					// Found Date header
-					from_date = new Date(line.substr(6).trim());
-					if (from_date.getYear() === NaN)
-						from_date = null;
-				} else if (line_start_c === 88 /* X */ && line.indexOf('X-Mozilla-') === 0) {
+				//// Just for debug…
+				//if (line.match(/Subject:/)) log('MSG ['+line.trim()+']');
+				
+				// mk 2011-06-08: Instead of parsing Date header, which is not always present,
+				// I decided to choose the receivedTimestamp value from TBB file, which seems to be
+				// present everytime (even for Sent messages, where Date is missing).
+				//if (line_start_c === 68 /* D */ && line.indexOf('Date: ') === 0) {
+				//	// Found Date header
+				//	from_date = new Date(line.substr(6).trim());
+				//	if (from_date.getYear() === NaN)
+				//		from_date = null;
+				//}
+				
+				if (line_start_c === 88 /* X */ && line.indexOf('X-Mozilla-') === 0) {
 					// Strip existing Mozilla headers as they could cause problems
 					if (line.indexOf(X_MOZILLA_STATUS_PREFIX) === 0
 						|| line.indexOf(X_MOZILLA_STATUS2_PREFIX) === 0
@@ -972,12 +1002,25 @@ ConvertTbbToMboxIterator.prototype = {
 			}
 			headers_array.push(line); // add the last line
 			
+			// mk 2011-06-08: Use receivedTimestamp instead of Date header
+			//
+			// It seems that the timestamp is neither in UTC and neither in local timezone according
+			// the timestamp parsing. The Bat probably uses own algorithm for casting between date and timestamp.
+			//
+			// This is visible on older messages, where „Received“ date in The Bat and
+			// parsed date here can differ even for 3 hours.
+			//
+			// However, it is still better to have this value than nothing.
+			from_date = new Date(mi.receivedTimestamp * 1000);
+			
+			//log('RCVD ['+mi.receivedTimestamp+'] ['+from_date.toString()+']');
+			
 			// Add the From header to the beginning
 			headers_array.unshift(from_date !== null
 				? (// From - Mon May 30 22:34:26 2011
 					MBOX_SPLIT_PREFIX
 					+ConvertTbbToMboxIterator.DAY_MAP[ from_date.getDay() ]
-					+' '+ConvertTbbToMboxIterator.MONTH_MAP[ from_date.getMonth()-1 ]
+					+' '+ConvertTbbToMboxIterator.MONTH_MAP[ from_date.getMonth() ]
 					+' '+(from_date.getDay() < 10 ? '0' : '')+from_date.getDay()
 					+' '+(from_date.getHours() < 10 ? '0' : '')+from_date.getHours()
 					+':'+(from_date.getMinutes() < 10 ? '0' : '')+from_date.getMinutes()
@@ -1005,6 +1048,8 @@ ConvertTbbToMboxIterator.prototype = {
 			//log('Message ['+i+'] end');
 			
 			this._onAfterMessage(i);
+			
+			++this._convertedEmails;
 		}
 		
 	},
@@ -1100,8 +1145,10 @@ ConvertTbbToMboxIterator.prototype = {
 
 ConvertTbbToMboxIterator.READ_LINE_BUFFER = 8192;
 
+// First day is Sunday, and it stars from 0.
 ConvertTbbToMboxIterator.DAY_MAP = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
+// Yes, months are starting from 0!
 ConvertTbbToMboxIterator.MONTH_MAP = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 /**
