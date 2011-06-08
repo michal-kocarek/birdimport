@@ -12,16 +12,17 @@
  * 
  * The Original Code is Bird Import.
  * 
- * The Initial Developer of the Original Code is Michal Kočárek <michal.kocarek@brainbox.cz>.
+ * The Initial Developer of the Original Code is Michal Kočárek <code@brainbox.cz>.
  * 
  * Copyright (C) 2011, Michal Kočárek. All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * Script contains XPCOM modules for Mozilla Thunderbird.
+ * This JavaScript code module contains core functionality for importing
+ * e-mail messages from The Bat! to the Thunderbird.
  * 
- * @author Michal Kočárek michal.kocarek@brainbox.cz
+ * @author Michal Kočárek
  * @since 2011.06.04
  */
 
@@ -996,11 +997,11 @@ ConvertTbbToMboxIterator.prototype = {
 						|| line.indexOf(X_MOZILLA_KEYWORDS_PREFIX) === 0) {
 						continue;
 					}
-					// else leave the header, because we do not know how important it is
+					// Else - this is a X-Mozilla header, but we do not know which one, so rather leave it here.
 				}
 				headers_array.push(line);
 			}
-			headers_array.push(line); // add the last line
+			headers_array.push(line); // add the last line (this is the empty \r\n)
 			
 			// mk 2011-06-08: Use receivedTimestamp instead of Date header
 			//
@@ -1048,9 +1049,8 @@ ConvertTbbToMboxIterator.prototype = {
 			//log('Message ['+i+'] end');
 			
 			this._onAfterMessage(i);
-			
 			++this._convertedEmails;
-		}
+		} // for(var i in mi)
 		
 	},
 	

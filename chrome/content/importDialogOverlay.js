@@ -12,7 +12,7 @@
  * 
  * The Original Code is Bird Import.
  * 
- * The Initial Developer of the Original Code is Michal Kočárek <michal.kocarek@brainbox.cz>.
+ * The Initial Developer of the Original Code is Michal Kočárek <code@brainbox.cz>.
  * 
  * Copyright (C) 2011, Michal Kočárek. All Rights Reserved.
  *
@@ -25,8 +25,8 @@
  * and that allows importing the The Bat! e-mails.
  *
  * We are not registering the importer permanently, because it is buggy.
- * 
- * @author Michal Kočárek michal.kocarek@brainbox.cz
+ *
+ * @author Michal Kočárek
  * @since 2011.06.04
  */
 	

@@ -12,14 +12,18 @@
  * 
  * The Original Code is Bird Import.
  * 
- * The Initial Developer of the Original Code is Michal Kočárek <michal.kocarek@brainbox.cz>.
+ * The Initial Developer of the Original Code is Michal Kočárek <code@brainbox.cz>.
  * 
  * Copyright (C) 2011, Michal Kočárek. All Rights Reserved.
  *
  * ***** END LICENSE BLOCK ***** */
 
 /**
- * // TODO: mk 2011-05-22 12:44:28: Missing comment
+ * This file contains XPCOM modules used in Mozilla Thunderbird
+ * for importing e-mail messages from The Bat!
+ * 
+ * @author Michal Kočárek
+ * @since 2011.06.04
  */
 
 // Import XPCOMUtils for setting the migrator component.
@@ -57,13 +61,24 @@ const IMPORT_THEBAT_MAIL_IMPL_CID = '{d7263931-21ea-4972-a335-6c62daa942f7}';
 
 /**
  * String noting that module is able to import e-mails.
+ *
+ * Constant name and value copied from following file.
  * http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportModule.idl
  */
 const NS_IMPORT_MAIL_STR = 'mail';
 
-/** @type Components.interfaces.nsIStringBundleService */
-var strBundleSrv = Cc['@mozilla.org/intl/stringbundle;1'].getService(Ci.nsIStringBundleService);
-var strBundle = strBundleSrv.createBundle('chrome://birdimport/locale/birdimport.properties');
+/**
+ * Comma-separated string of supported import types.
+ *
+ * See nsIImportModule::supports() for more info.
+ */
+const THEBAT_IMPORT_MODULE_SUPPORTS = NS_IMPORT_MAIL_STR;
+
+/** @type Components.interfaces.nsIStringBundle
+ * String bundle for Bird Import. */
+const strBundle = Cc['@mozilla.org/intl/stringbundle;1']
+	.getService(Ci.nsIStringBundleService)
+	.createBundle('chrome://birdimport/locale/birdimport.properties');
 
 /**
  * Import module for the data from The Bat! application.
@@ -111,11 +126,22 @@ TheBatImportModule.prototype = {
 	 * @returns {String} Comma-separated list of supported values.
 	 */
 	get supports() {
-		return NS_IMPORT_MAIL_STR;
+		return THEBAT_IMPORT_MODULE_SUPPORTS;
 	},
 	
+	/**
+	 * Unknown method.
+	 *
+	 * mk 2011-06-08: I could not find the meaning for this method.
+	 *
+	 * @returns {Boolean} A boolean value of unknown meaning.
+	 */
 	get supportsUpgrade() {
-		return false; // TODO: mk 2011-05-22 02:22:09: I don’t know, what's this, so better to disable it
+		// As found on MXR: http://mxr.mozilla.org/comm-central/ident?i=supportsUpgrade,
+		// some import modules return true, some false. :-)
+		//
+		// So just return false and don’t think about it!
+		return false; // Yes, Sir!
 	},
 	
 	/**
@@ -124,12 +150,13 @@ TheBatImportModule.prototype = {
 	 */
 	GetImportInterface: function(importType) {
 		
-		if (importType == 'mail') { // TODO: mk 2011-05-22 02:41:06: Externalize the string
+		if (importType == NS_IMPORT_MAIL_STR) {
 			
 			// Import service http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportService.idl
 			var importService = Cc['@mozilla.org/import/import-service;1'].getService().QueryInterface(Ci.nsIImportService);
 			
-			/** @type Components.interfaces.nsIImportGeneric http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportGeneric.idl */
+			/** @type Components.interfaces.nsIImportGeneric
+			 * http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportGeneric.idl */
 			var iGeneric = importService.CreateNewGenericMail();
 			
 			/** @type Components.interfaces.nsIImportMail */
@@ -249,10 +276,8 @@ ImportTheBatMailImpl.prototype = {
 			mbd.depth = mailbox.depth;
 			
 			if (mailbox.filepath) {
+				// If the filepath is null, it is just a stub (plain folder without files).
 				mbd.file.initWithPath(mailbox.filepath);
-				// TODO: mk 2011-06-05 03:02:51: Remove the testing comment
-				//mbd.file.initWithPath('E:\\WWW\\sandbox\\birdimport\\tbb\\4 messages - color groups\\03 more messages.TBB'); //mailbox.filepath);
-				//mbd.file.initWithPath('E:\\WWW\\sandbox\\birdimport\\tbb\\Testing (attachments outside)\\Inbox\\MESSAGES.TBB'); //mailbox.filepath);
 			}
 			mbd.size = mailbox.size;
 			
