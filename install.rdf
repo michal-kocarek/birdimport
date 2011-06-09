@@ -30,9 +30,10 @@
 		
 		<em:description>The extension allows to import e-mail messages from The Bat! mail client into Thunderbird.</em:description>
 		<em:creator>Michal Kočárek</em:creator>
-		
-		<!--<em:iconURL>chrome://birdimport/icon.png</em:iconURL>--><!-- This path because of https://developer.mozilla.org/en/Updating_extensions_for_Firefox_3.6 -->
 		<em:homepageURL>http://brainbox.cz/birdimport/</em:homepageURL>
+		
+		<em:iconURL>chrome://birdimport/skin/icon.png</em:iconURL>
+		<em:icon64URL>chrome://birdimport/skin/icon64.png</em:icon64URL>
 		
 		<em:localized>
 			<Description>

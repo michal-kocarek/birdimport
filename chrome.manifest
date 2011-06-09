@@ -31,6 +31,9 @@ locale    birdimport     cs-CZ     chrome/locale/cs-CZ/
 # Overlay for the import dialog in Thunderbird
 overlay   chrome://messenger/content/importDialog.xul     chrome://birdimport/content/importDialogOverlay.xul
 
+# Skin
+skin      birdimport     classic/1.0     chrome/skin/
+
 # Components (Gecko 2.0+)
 
 # TheBatImportModule (nsIImportModule)
