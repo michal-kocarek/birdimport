@@ -466,15 +466,14 @@ ImportTheBatMailImpl.prototype = {
 	
 };
 
-var components = [TheBatImportModule, ImportTheBatMailImpl];
-
-// The actual hook into XPCOM
-if (typeof XPCOMUtils !== 'undefined' && !!XPCOMUtils.generateNSGetFactory) {
-	// Gecko 2 uses a different component registration strategy and registers categories in chrome.manifest
-	var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
-} else {
-	// Older Firefox requires manually setting up category entries
-	var NSGetModule = function NSGetModule(compMgr, fileSpec) {
-		return XPCOMUtils.generateModule(components);
+// Register the components
+let (components = [TheBatImportModule, ImportTheBatMailImpl]) {
+	// https://developer.mozilla.org/en/XPCOM/XPCOM_changes_in_Gecko_2.0#Component_registration
+	if (!!XPCOMUtils.generateNSGetFactory) {
+		// Gecko 2.0 version – NSGetFactory
+		var NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
+	} else {
+		// Gecko <1.9 version – NSGetModule
+		var NSGetModule = XPCOMUtils.generateNSGetModule(components);
 	}
 }

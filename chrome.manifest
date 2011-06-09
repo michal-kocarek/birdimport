@@ -30,3 +30,12 @@ locale    birdimport     cs-CZ     chrome/locale/cs-CZ/
 
 # Overlay for the import dialog in Thunderbird
 overlay   chrome://messenger/content/importDialog.xul     chrome://birdimport/content/importDialogOverlay.xul
+
+# Components (Gecko 2.0+)
+
+# TheBatImportModule (nsIImportModule)
+component {864d338b-bbc4-4cc1-bd82-027b85ef8e1e} components/import_modules.js
+contract  @mozilla.org/import/import-thebat;1    {864d338b-bbc4-4cc1-bd82-027b85ef8e1e}
+# ImportTheBatMailImpl (nsIImportMail)
+component {d7263931-21ea-4972-a335-6c62daa942f7} components/import_modules.js
+
