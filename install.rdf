@@ -24,14 +24,12 @@
 		<em:id>birdimport@brainbox.cz</em:id>
 		
 		<em:type>2</em:type><!-- extension -->
-		<!--<unpack>true</unpack>-->
 		
 		<em:name>Bird Import</em:name>
 		<em:version>0.9b</em:version>
 		
 		<em:description>The extension allows to import e-mail messages from The Bat! mail client into Thunderbird.</em:description>
 		<em:creator>Michal Kočárek</em:creator>
-		<!--<em:contributor>Extension icon icons used are from the famfamfam Silk Icon Set, licensed under a Creative Commons Attribution 2.5 License</em:contributor>-->
 		
 		<!--<em:iconURL>chrome://birdimport/icon.png</em:iconURL>--><!-- This path because of https://developer.mozilla.org/en/Updating_extensions_for_Firefox_3.6 -->
 		<em:homepageURL>http://brainbox.cz/birdimport/</em:homepageURL>
@@ -47,12 +45,12 @@
 		
 		<em:targetApplication>
 			<Description>
-				<!-- Thunderbird; version 3.1 has Gecko 1.9
+				<!-- Thunderbird; versions 3.0+ have Gecko 1.9, versions 3.3+ have Gecko 2
 					Components.classes["@mozilla.org/xre/app-info;1"].getService(Components.interfaces.nsIXULAppInfo).platformVersion
 				-->
 				<em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
 				<em:minVersion>3.0</em:minVersion>
-				<em:maxVersion>3.1.*</em:maxVersion>
+				<em:maxVersion>5.*</em:maxVersion>
 			</Description>
 		</em:targetApplication>
 		
