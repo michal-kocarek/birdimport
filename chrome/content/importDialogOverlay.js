@@ -36,12 +36,14 @@
 	const Ci = Components.interfaces;
 
 	/** @type Components.interfaces.nsICategoryManager */
-	var categoryManager = Cc["@mozilla.org/categorymanager;1"].getService().QueryInterface(Ci.nsICategoryManager);
+	var categoryManager = Cc['@mozilla.org/categorymanager;1'].getService().QueryInterface(Ci.nsICategoryManager);
 	
 	// Instantiate the importer to get information about what we import
 	var tbImportModule = Cc['@mozilla.org/import/import-thebat;1'].createInstance(Ci.nsIImportModule);
 	
 	// mailnewsimport is name of category holding all available import modules.
 	categoryManager.addCategoryEntry('mailnewsimport', Cc['@mozilla.org/import/import-thebat;1'].number, tbImportModule.supports, false, true);
+	
+	tbImportModule = null;
 	
 })();

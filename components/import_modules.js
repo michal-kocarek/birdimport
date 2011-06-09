@@ -159,9 +159,6 @@ TheBatImportModule.prototype = {
 			 * http://mxr.mozilla.org/comm-central/source/mailnews/import/public/nsIImportGeneric.idl */
 			var iGeneric = importService.CreateNewGenericMail();
 			
-			/** @type Components.interfaces.nsIImportMail */
-			var importMailImpl = Components.classesByID[IMPORT_THEBAT_MAIL_IMPL_CID].createInstance(Ci.nsIImportMail);
-			
 			/** @type Components.interfaces.nsISupportsString */
 			var name_str = Components.classes['@mozilla.org/supports-string;1'].createInstance(Components.interfaces.nsISupportsString);
 			name_str.data = strBundle.GetStringFromName('import.thebat.name');
@@ -170,7 +167,23 @@ TheBatImportModule.prototype = {
 			// and http://mxr.mozilla.org/comm-central/source/mailnews/import/applemail/src/nsAppleMailImport.cpp, nsAppleMailImportModule::GetImportIterface()
 			// Data keys are described in the interface.
 			
-			iGeneric.SetData('mailInterface', importMailImpl);
+			/** @type Components.interfaces.nsIImportMail */
+			var importMailImpl = Components.classesByID[IMPORT_THEBAT_MAIL_IMPL_CID].createInstance(Ci.nsIImportMail);
+			
+			TbTools.log('Creating proxy for importMailImpl');
+			
+			/** @type Components.interfaces.nsIThreadManager */
+			var threadManager = Cc['@mozilla.org/thread-manager;1'].getService(Ci.nsIThreadManager);
+			var mainThread = threadManager.currentThread;
+			
+			/** @type Components.interfaces.nsIProxyObjectManager */
+			var proxyMgr = Cc['@mozilla.org/xpcomproxy;1'].getService(Ci.nsIProxyObjectManager);
+			
+			var proxiedImportMailImpl = proxyMgr.getProxyForObject(mainThread, Ci.nsIImportMail, importMailImpl, proxyMgr.INVOKE_SYNC | proxyMgr.FORCE_PROXY_CREATION);
+			
+			TbTools.log('Proxy for importMailImpl done');
+			
+			iGeneric.SetData('mailInterface', proxiedImportMailImpl);
 			
 			// mk: This attribute is used as part of name for the root target folder.
 			iGeneric.SetData('name', name_str);
