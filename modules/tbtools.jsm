@@ -210,12 +210,27 @@ const MSG_FLAG_ATTACHMENT = Ci.nsMsgMessageFlags.Attachment;
 
 
 /** @type Components.interfaces.nsIConsoleService
- * Lazy loaded console service */
+ * Lazy loaded console service or false when logging is disabled */
 var console_service = null;
 function log(msg) {
-	if (console_service === null)
-		console_service = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
-	console_service.logStringMessage('TB: '+msg);
+	if (console_service === false)
+		return;
+	if (console_service === null) {
+		// Find, whether we will show the logs in console
+		// Basic info taken from resource://gre/modules/AddonLogging.jsm and resource://gre/modules/Services.jsm
+		const PREF_LOGGING_ENABLED = 'extensions.logging.enabled';
+		/** @type Components.interfaces.nsIPrefBranch2 */
+		var prefs = Cc['@mozilla.org/preferences-service;1'].getService(Ci.nsIPrefService).QueryInterface(Ci.nsIPrefBranch2);
+		var is_enabled = prefs.getBoolPref(PREF_LOGGING_ENABLED);
+		
+		console_service = is_enabled
+			? Cc['@mozilla.org/consoleservice;1'].getService(Ci.nsIConsoleService)
+			: false;
+		
+		if (!console_service)
+			return;
+	}
+	console_service.logStringMessage('Bird Import: '+msg);
 }
 
 /**
