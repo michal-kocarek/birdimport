@@ -30,6 +30,9 @@
 		
 		<em:description>The extension allows to import e-mail messages from The Bat! mail client into Thunderbird.</em:description>
 		<em:creator>Michal Kočárek</em:creator>
+		<em:contributor>Extension icon composed from Fugue Icons (by Yusuke Kamiyamane, licensed under Creative Commons Attribution 3.0 license)
+			and from The Bat icon (by vicing on deviantART).</em:contributor>
+		
 		<em:homepageURL>http://brainbox.cz/birdimport/</em:homepageURL>
 		
 		<em:iconURL>chrome://birdimport/skin/icon.png</em:iconURL>
