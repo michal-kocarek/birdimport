@@ -26,7 +26,7 @@
 		<em:type>2</em:type><!-- extension -->
 		
 		<em:name>Bird Import</em:name>
-		<em:version>1.0</em:version>
+		<em:version>1.0.1</em:version>
 		
 		<em:description>The extension allows to import e-mail messages from The Bat! mail client into Thunderbird.</em:description>
 		<em:creator>Michal Kočárek</em:creator>

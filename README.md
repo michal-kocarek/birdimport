@@ -24,7 +24,8 @@ It was fun to make this. None of the import logic is documented on MDC, so [MXR]
 
 ## Changelog
 
-* **1.0.1 (2011-11-28)**
-  Fixed issue #16. Extension could sometimes not find the profile directory.
-* **1.0 (2011-07-05)**
-  First release.
+* **1.0.1 (2011-11-28)**:
+	* Fixed issue #16. Extension could sometimes not find the profile directory.
+	* Update compatibility to Thunderbird X.X.
+* **1.0 (2011-07-05)**:
+	* First release.
