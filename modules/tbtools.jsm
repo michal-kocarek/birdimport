@@ -1198,10 +1198,12 @@ FileTools = {
 		var env = Cc['@mozilla.org/process/environment;1'].getService(Ci.nsIEnvironment);
 		var matches = str.match(/%[^%]+%/g);
 		
-		for (var i = 0, matches_length = matches.length; i < matches_length; ++i) {
-			var match = matches[i].toUpperCase();
-			var env_name = match.match(/^%([^%]+)%/)[1];
-			str = str.replace(match, env.get(env_name));
+		if (matches) {
+			for (var i = 0, matches_length = matches.length; i < matches_length; ++i) {
+				var match = matches[i].toUpperCase();
+				var env_name = match.match(/^%([^%]+)%/)[1];
+				str = str.replace(match, env.get(env_name));
+			}
 		}
 		
 		return str;
