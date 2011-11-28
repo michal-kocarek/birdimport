@@ -21,3 +21,10 @@ The add-on hooks (overlays) the Thunderbird Import dialog. It has a XPCOM compon
 The Bat! TBB storage files are parsed by the plugin, and the e-mails are then imported to Thunderbird using exposed interfaces.
 
 It was fun to make this. None of the import logic is documented on MDC, so [MXR](http://mxr.mozilla.org/comm-central/source/mailnews/import/) was my friend.
+
+## Changelog
+
+* **1.0.1 (2011-11-28)**
+  Fixed issue #16. Extension could sometimes not find the profile directory.
+* **1.0 (2011-07-05)**
+  First release.
